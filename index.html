@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>كازينو الحظ الملكي 🎰</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap');
+        body { 
+            background: radial-gradient(circle, #1a0f00 0%, #000 100%); 
+            color: #d4af37; font-family: 'Cairo', sans-serif; 
+            margin: 0; display: flex; flex-direction: column; 
+            align-items: center; justify-content: center; height: 100vh;
+        }
+        .main-card {
+            background: rgba(0, 0, 0, 0.8); border: 2px solid #d4af37;
+            padding: 30px; border-radius: 25px; text-align: center; width: 85%; max-width: 400px;
+        }
+        .btn {
+            display: block; background: linear-gradient(180deg, #222, #000);
+            border: 1px solid #d4af37; color: #ffd700; padding: 15px;
+            margin: 15px 0; border-radius: 12px; text-decoration: none; font-size: 18px;
+        }
+        .btn:active { background: #d4af37; color: #000; }
+    </style>
+</head>
+<body>
+    <div class="main-card">
+        <h1>🏆 منصة الألعاب</h1>
+        <p>اختر اللعبة وابدأ الربح</p>
+        
+        <a href="wheel.html" class="btn">🎡 عجلة الحظ الذكية</a>
+        
+        <a href="boxes.html" class="btn">📦 صناديق الكنز</a>
+    </div>
+
+    <script>
+        if (!localStorage.getItem('game_user')) {
+            let name = prompt("أدخل اسمك للمتابعة:");
+            localStorage.setItem('game_user', name || "لاعب_جديد");
+        }
+    </script>
+</body>
+</html>
+
