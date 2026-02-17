@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>صناديق الكنز 📦</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap');
+        body { background: radial-gradient(circle, #1a0f00 0%, #000 100%); color: #d4af37; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 20px; }
+        .bal-card { background: #111; border: 2px solid #d4af37; padding: 15px; border-radius: 15px; margin-bottom: 30px; display: inline-block; min-width: 200px; }
+        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 350px; margin: 0 auto; }
+        .box { 
+            background: #1a1a1a; border: 2px solid #444; height: 100px; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; font-size: 45px; 
+            cursor: pointer; transition: 0.3s;
+        }
+        .box:active { transform: scale(0.9); border-color: #ffd700; }
+        .btn-back { display: inline-block; margin-top: 30px; color: #d4af37; text-decoration: none; border-bottom: 1px solid #d4af37; }
+    </style>
+</head>
+<body>
+    <div class="bal-card">
+        <div>💰 الرصيد الملكي</div>
+        <div id="uBal" style="font-size: 24px; color: #fff;">0</div>
+    </div>
+    <div class="grid">
+        <div class="box" onclick="openBox(this)">📦</div>
+        <div class="box" onclick="openBox(this)">📦</div>
+        <div class="box" onclick="openBox(this)">📦</div>
+        <div class="box" onclick="openBox(this)">📦</div>
+        <div class="box" onclick="openBox(this)">📦</div>
+        <div class="box" onclick="openBox(this)">📦</div>
+    </div>
+    <p>تكلفة الفتح: 500 نقطة</p>
+    <a href="index.html" class="btn-back">⬅ العودة للرئيسية</a>
+
+    <script>
+        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+        let user = localStorage.getItem('game_user') || "لاعب";
+        let bal = 0;
+
+        db.ref('players_logs/'+user).on('value', s => {
+            if(s.val()){
+                bal = s.val().score;
+                document.getElementById('uBal').innerText = bal.toLocaleString();
+            }
+        });
+
+        function openBox(el) {
+            if(bal < 500) return alert("رصيدك لا يكفي!");
+            let win = Math.random() < 0.2; 
+            let prize = win ? 2500 : 0;
+            db.ref('players_logs/'+user).update({ score: bal - 500 + prize });
+            el.innerText = win ? "💎" : "💨";
+            setTimeout(() => { alert(win ? "مبروك! وجدت 2500 نقطة" : "للأسف فارغ"); el.innerText = "📦"; }, 500);
+        }
+    </script>
+</body>
+</html>
