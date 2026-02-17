@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>دوار الحظ - نسخة التوازن الذكي 🎰</title>
+    <title>دوار الحظ - نسخة التحدي الصعبة 🎰</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
@@ -59,7 +59,6 @@
     localStorage.setItem('game_user', user || "لاعب");
 
     let bal = 0, bet = 100, currentRot = 0;
-    let lastResultWasLoss = 0; // عداد لتجنب الخسارات المتتالية
 
     const items = ["200", "1000", "500", "2000", "5000", "10000", "حظ أوفر"];
     const colors = ["#1a1a1a", "#d4af37", "#1a1a1a", "#d4af37", "#1a1a1a", "#d4af37", "#7e0000"];
@@ -111,31 +110,18 @@
         }, (err, comm, snap) => {
             if(comm) {
                 const data = snap.val();
-                const sNum = data.spins;
-                const balAfterBet = data.score;
                 document.getElementById('spinBtn').disabled = true;
                 document.getElementById('s_spin').play();
 
                 let target;
-                // المسار المبرمج (أول 3 ضربات)
-                if(sNum === 1) target = 5;      // ربح 10000
-                else if(sNum === 2) target = 5; // ربح 10000
-                else if(sNum === 3) target = 6; // خسارة
-                else {
-                    // نظام الاحتمالات 45% ربح + منع الخسارة المتتالية (>2)
-                    if (lastResultWasLoss >= 2) {
-                        // إجبار الربح إذا خسر مرتين ورا بعض
-                        target = Math.floor(Math.random() * 5); 
-                    } else {
-                        let luck = Math.random() * 100;
-                        if(luck < 55) target = 6; // 55% خسارة
-                        else target = Math.floor(Math.random() * 5); // 45% ربح
-                    }
-                }
+                let luck = Math.random() * 100;
 
-                // تحديث عداد الخسارة المتتالية
-                if(target === 6) lastResultWasLoss++;
-                else lastResultWasLoss = 0;
+                // نظام الاحتمالات الجديد (صعب جداً)
+                if(luck < 75) {
+                    target = 6; // 75% نسبة الوقوف على "حظ أوفر"
+                } else {
+                    target = Math.floor(Math.random() * 6); // 25% فقط موزعة على خانات الربح
+                }
 
                 const deg = 360 / items.length;
                 const targetRot = (360 - (target * deg));
@@ -146,13 +132,12 @@
                     let val = items[target];
                     if(val === "حظ أوفر") {
                         document.getElementById('s_lose').play();
-                        alert("هاردلك! حاول مرة أخرى.");
+                        alert("حظ أوفر المرة القادمة!");
                     } else {
                         document.getElementById('s_win').play();
                         let prize = parseInt(val);
-                        // إعادة الرهان + الجائزة
-                        userRef.update({score: balAfterBet + bet + prize});
-                        alert("مبروك! ربحت " + prize + " بالإضافة لإسترداد رهانك.");
+                        userRef.update({score: data.score + bet + prize});
+                        alert("مبروك! ربحت " + prize);
                         confetti({particleCount:150, spread: 70});
                     }
                     document.getElementById('spinBtn').disabled = false;
