@@ -6,6 +6,8 @@
     <title>منصة الملوك الملكية 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
         
@@ -36,7 +38,7 @@
             padding: 25px; 
             width: 100%; 
             max-width: 400px; 
-            margin-bottom: 30px; 
+            margin-bottom: 20px; 
             text-align: center;
             box-shadow: 0 10px 30px rgba(212,175,55,0.1);
         }
@@ -49,6 +51,28 @@
             color: #fff; 
             display: block;
             margin-top: 5px;
+        }
+
+        /* قسم شحن الرصيد (شام كاش) */
+        .recharge-section {
+            background: #0a0a0a;
+            border: 1px dashed #d4af37;
+            border-radius: 15px;
+            padding: 15px;
+            width: 100%;
+            max-width: 400px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .recharge-title { color: #d4af37; font-size: 14px; margin-bottom: 10px; }
+        #qrcode { 
+            display: flex; 
+            justify-content: center; 
+            background: #fff; 
+            padding: 10px; 
+            border-radius: 10px; 
+            width: fit-content; 
+            margin: 0 auto;
         }
 
         /* شبكة الألعاب */
@@ -83,8 +107,6 @@
         }
 
         .game-card span { font-size: 16px; font-weight: bold; }
-
-        /* الكرت العريض للنرد */
         .full-width { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; }
 
         .footer-text { margin-top: 40px; color: #444; font-size: 12px; }
@@ -98,6 +120,12 @@
         <div class="user-name">اللاعب: <span id="pNameDisplay">...</span></div>
         <div class="balance-label">الرصيد الإجمالي</div>
         <div class="balance-value"><span id="pBalanceDisplay">0</span> 💰</div>
+    </div>
+
+    <div class="recharge-section">
+        <div class="recharge-title">اضغط لشحن رصيدك عبر شام كاش 💳</div>
+        <div id="qrcode"></div>
+        <div style="font-size: 10px; color: #555; margin-top: 8px;">ID: be066...eb5e</div>
     </div>
 
     <div class="games-grid">
@@ -117,13 +145,25 @@
         </a>
     </div>
 
-    <div class="footer-text">إصدار V2.0 - نظام الحساب الموحد</div>
+    <div class="footer-text">إصدار V2.0 - نظام الشحن السريع</div>
 
     <script>
         // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+
+        // توليد الباركود تلقائياً عند تحميل الصفحة
+        window.onload = function() {
+            new QRCode(document.getElementById("qrcode"), {
+                text: "be066ca49abcf3d1ac79a65895aecb5e",
+                width: 130,
+                height: 130,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        };
 
         // نظام تسجيل الاسم وتصفير الرصيد الجديد
         let pName = localStorage.getItem('pName');
@@ -138,18 +178,11 @@
 
         document.getElementById('pNameDisplay').innerText = pName;
 
-        // الاتصال بقاعدة البيانات
         const playerRef = db.ref('players_logs/' + pName);
-
         playerRef.on('value', (snapshot) => {
             if (!snapshot.exists()) {
-                // تصفير الرصيد عند أول دخول (بداية من الصفر)
-                playerRef.set({ 
-                    score: 0, 
-                    lastLogin: new Date().getTime() 
-                });
+                playerRef.set({ score: 0, lastLogin: new Date().getTime() });
             } else {
-                // تحديث الرصيد المعروض
                 document.getElementById('pBalanceDisplay').innerText = snapshot.val().score.toLocaleString();
             }
         });
