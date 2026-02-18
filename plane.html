@@ -3,41 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رحلة الثراء 🚀</title>
+    <title>رحلة المخاطرة 🚀</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; overflow: hidden; }
-        
-        /* منطقة الطيران */
         .game-area { height: 45vh; position: relative; background: radial-gradient(circle at bottom, #111, #000); overflow: hidden; border-bottom: 2px solid #d4af37; }
-        #plane { position: absolute; bottom: 20px; left: 10%; font-size: 55px; z-index: 10; transition: transform 0.1s linear; }
-        .multiplier { font-size: 75px; padding-top: 20px; color: #d4af37; font-weight: 900; text-shadow: 0 0 15px rgba(212,175,55,0.5); }
-
-        /* منطقة التحكم (شبه العجلة) */
-        .controls { padding: 15px; background: #0d0d0d; height: 55vh; border-top: 1px solid #333; }
-        .balance-bar { font-size: 20px; margin-bottom: 15px; color: #d4af37; border-bottom: 1px solid #222; padding-bottom: 10px; }
-
-        /* شبكة أزرار المراهنة */
-        .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 350px; margin: 0 auto 15px; }
-        .bet-option { 
-            background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; 
-            border-radius: 10px; cursor: pointer; font-weight: bold; font-size: 16px; transition: 0.2s;
-        }
-        .bet-option:hover { border-color: #d4af37; background: #222; }
-        .bet-option.active { background: #d4af37; color: #000; border-color: #fff; transform: scale(1.05); }
-
-        /* زر الإقلاع الرئيسي */
-        .btn-main { 
-            background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; 
-            padding: 18px; border-radius: 50px; font-size: 24px; font-weight: 900; 
-            border: none; cursor: pointer; width: 90%; max-width: 400px; 
-            box-shadow: 0 5px 15px rgba(212,175,55,0.3);
-        }
-        .btn-cashout { background: linear-gradient(180deg, #27ae60, #1e8449); color: #fff; box-shadow: 0 5px 15px rgba(39,174,96,0.3); }
-        
+        #plane { position: absolute; bottom: 20px; left: 10%; font-size: 60px; z-index: 10; transition: transform 0.1s linear; filter: drop-shadow(0 0 10px #d4af37); }
+        .multiplier { font-size: 85px; padding-top: 20px; color: #d4af37; font-weight: 900; }
+        .controls { padding: 15px; background: #0d0d0d; height: 55vh; }
+        .balance-bar { font-size: 20px; margin-bottom: 10px; color: #d4af37; font-weight: bold; }
+        .bet-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 360px; margin: 0 auto 15px; }
+        .bet-option { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 12px; border-radius: 12px; cursor: pointer; font-size: 16px; }
+        .bet-option.active { background: #d4af37; color: #000; font-weight: 900; }
+        .btn-main { background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; padding: 20px; border-radius: 50px; font-size: 26px; font-weight: 900; border: none; cursor: pointer; width: 90%; max-width: 400px; }
+        .btn-cashout { background: linear-gradient(180deg, #27ae60, #1e8449); color: #fff; }
         #explosion { display: none; position: absolute; font-size: 80px; z-index: 11; }
+        .back { position: absolute; top: 10px; right: 10px; color: #d4af37; text-decoration: none; border: 1px solid #d4af37; padding: 5px 12px; border-radius: 8px; }
     </style>
 </head>
 <body>
@@ -47,6 +30,7 @@
     <audio id="sndWin" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
 
     <div class="game-area">
+        <a href="index.html" class="back">🔙 رجوع</a>
         <div id="multi" class="multiplier">1.00x</div>
         <div id="plane">🚀</div>
         <div id="explosion">💥</div>
@@ -54,17 +38,14 @@
 
     <div class="controls">
         <div class="balance-bar">💰 رصيدك: <span id="userBalance">0</span></div>
-        
-        <p style="margin: 5px 0; font-size: 14px; color: #888;">اختر مبلغ الرهان:</p>
         <div class="bet-grid">
             <div class="bet-option" onclick="selectBet(50, this)">50</div>
             <div class="bet-option active" onclick="selectBet(100, this)">100</div>
             <div class="bet-option" onclick="selectBet(250, this)">250</div>
             <div class="bet-option" onclick="selectBet(500, this)">500</div>
             <div class="bet-option" onclick="selectBet(1000, this)">1000</div>
-            <div class="bet-option" onclick="selectBet(2500, this)">2500</div>
+            <div class="bet-option" onclick="selectBet(5000, this)">5000</div>
         </div>
-
         <button class="btn-main" id="mainBtn" onclick="toggleGame()">إقلاع 🛫</button>
     </div>
 
@@ -72,25 +53,23 @@
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-
-        let pName = localStorage.getItem('pName') || "لاعب";
+        let pName = localStorage.getItem('pName');
         let score = 0, multi = 1.0, isFlying = false, timer, currentBet = 100;
 
         db.ref('players_logs/' + pName).on('value', s => {
-            score = s.val() ? s.val().score : 0;
-            document.getElementById('userBalance').innerText = score;
+            if(s.exists()) { score = s.val().score; document.getElementById('userBalance').innerText = score; }
         });
 
-        function selectBet(amount, el) {
-            if(isFlying) return; // منع تغيير الرهان أثناء الطيران
-            currentBet = amount;
-            document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('active'));
+        function selectBet(amt, el) {
+            if(isFlying) return;
+            currentBet = amt;
+            document.querySelectorAll('.bet-option').forEach(o => o.classList.remove('active'));
             el.classList.add('active');
         }
 
         function toggleGame() {
             if (!isFlying) {
-                if (score < currentBet) return alert("رصيدك لا يكفي لهذا الرهان!");
+                if (score < currentBet) return alert("رصيدك لا يكفي!");
                 db.ref('players_logs/' + pName).update({ score: score - currentBet });
                 startFlight();
             } else { cashOut(); }
@@ -98,32 +77,50 @@
 
         function startFlight() {
             isFlying = true; multi = 1.0;
-            let crashPoint = (Math.random() * 5 + 1.1).toFixed(2);
+            
+            // --- خوارزمية الخسارة المكثفة ---
+            let rand = Math.random();
+            let crashPoint;
+            
+            if (rand < 0.4) { 
+                // 40% انفجار مبكر جداً (خسارة مؤكدة)
+                crashPoint = 1.0 + (Math.random() * 0.2); 
+            } else if (rand < 0.8) { 
+                // 40% انفجار تحت مضاعف 2x
+                crashPoint = 1.2 + (Math.random() * 0.8);
+            } else if (rand < 0.95) {
+                // 15% ربح متوسط (بين 2x و 5x)
+                crashPoint = 2.0 + (Math.random() * 3.0);
+            } else {
+                // 5% فقط ربح ضخم (حتى 15x)
+                crashPoint = 5.0 + (Math.random() * 10.0);
+            }
+
             document.getElementById('mainBtn').innerText = "سحب الأرباح 💰";
             document.getElementById('mainBtn').classList.add('btn-cashout');
             document.getElementById('plane').style.display = "block";
             document.getElementById('explosion').style.display = "none";
             document.getElementById('sndTakeoff').play();
-            
-            timer = setInterval(() => {
-                multi += 0.03; // سرعة العداد
-                document.getElementById('multi').innerText = multi.toFixed(2) + "x";
 
-                let x = (multi - 1) * 110;
-                let y = (multi - 1) * 160;
-                document.getElementById('plane').style.transform = `translate(${x}px, -${y}px)`;
+            timer = setInterval(() => {
+                multi += 0.05; // عداد سريع لزيادة التوتر
+                document.getElementById('multi').innerText = multi.toFixed(2) + "x";
                 
+                let x = (multi - 1) * 70;
+                let y = (multi - 1) * 110;
+                document.getElementById('plane').style.transform = `translate(${x}px, -${y}px)`;
+
                 if (multi >= crashPoint) {
                     clearInterval(timer);
                     isFlying = false;
                     document.getElementById('sndExplode').play();
                     document.getElementById('plane').style.display = "none";
-                    document.getElementById('explosion').style.left = "45%";
+                    document.getElementById('explosion').style.left = "40%";
                     document.getElementById('explosion').style.bottom = "45%";
                     document.getElementById('explosion').style.display = "block";
                     setTimeout(() => resetGame(), 2000);
                 }
-            }, 100);
+            }, 80);
         }
 
         function cashOut() {
@@ -132,7 +129,7 @@
             document.getElementById('sndWin').play();
             let win = Math.floor(currentBet * multi);
             db.ref('players_logs/' + pName).update({ score: score + win });
-            alert("كفو! فزت بـ " + win + " نقطة ✅");
+            alert("✅ تم سحب الأرباح: " + win + " نقطة");
             resetGame();
         }
 
