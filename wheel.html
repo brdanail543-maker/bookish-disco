@@ -3,30 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عجلة الحظ الملكية 🎡</title>
+    <title>منصة الملوك - العجلة الذكية 🎡</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; overflow: hidden; }
-        
-        .header { position: absolute; top: 0; width: 100%; display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; }
+        .header { width: 100%; display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; box-sizing: border-box; }
         .balance-chip { background: #000; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; }
-
-        /* حاوية العجلة */
-        .wheel-container { position: relative; width: 320px; height: 320px; margin-top: 50px; }
-        .wheel-main { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #d4af37; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); background: conic-gradient(
-            #d4af37 0deg 45deg, #111 45deg 90deg, #d4af37 90deg 135deg, #111 135deg 180deg,
-            #d4af37 180deg 225deg, #111 225deg 270deg, #d4af37 270deg 315deg, #111 315deg 360deg
-        ); box-shadow: 0 0 20px #d4af3766; }
         
-        /* مؤشر العجلة */
-        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 100; }
+        /* العجلة */
+        .wheel-container { position: relative; width: 320px; height: 320px; margin-top: 30px; }
+        .wheel-main { width: 100%; height: 100%; border-radius: 50%; border: 5px solid #d4af37; transition: transform 4s cubic-bezier(0.1, 0, 0.1, 1); position: relative; overflow: hidden; background: #111; }
+        .segment { position: absolute; width: 50%; height: 50%; transform-origin: 100% 100%; display: flex; align-items: center; justify-content: center; font-weight: 900; font-size: 16px; color: #000; }
+        .segment:nth-child(odd) { background: #d4af37; }
+        .segment:nth-child(even) { background: #8a6d3b; color: #fff; }
+        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 30px solid #ff4444; z-index: 100; }
 
-        .controls { margin-top: 40px; width: 90%; max-width: 400px; text-align: center; }
-        .bet-input { background: #111; border: 2px solid #333; color: #fff; padding: 12px; width: 80%; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; }
+        /* التحكم */
+        .bet-box { margin-top: 25px; width: 90%; max-width: 400px; }
+        .bet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
+        .bet-btn { background: #1a1a1a; border: 1px solid #d4af37; color: #d4af37; padding: 12px 5px; border-radius: 8px; cursor: pointer; font-weight: bold; font-size: 14px; transition: 0.2s; }
+        .bet-btn:hover { background: #d4af37; color: #000; }
+        .bet-input { background: #111; border: 2px solid #333; color: #fff; padding: 12px; width: 100%; border-radius: 12px; font-size: 18px; text-align: center; margin-bottom: 15px; box-sizing: border-box; }
         .spin-btn { background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; width: 100%; padding: 18px; border-radius: 50px; font-size: 22px; font-weight: 900; border: none; cursor: pointer; }
-        .spin-btn:disabled { opacity: 0.5; cursor: not-allowed; }
     </style>
 </head>
 <body>
@@ -38,13 +38,27 @@
 
     <div class="wheel-container">
         <div class="pointer"></div>
-        <div id="wheelMain" class="wheel-main"></div>
+        <div id="wheelMain" class="wheel-main">
+            <div class="segment" style="transform: rotate(0deg) skewY(-45deg);"><span>0x</span></div>
+            <div class="segment" style="transform: rotate(45deg) skewY(-45deg);"><span>0.5x</span></div>
+            <div class="segment" style="transform: rotate(90deg) skewY(-45deg);"><span>0x</span></div>
+            <div class="segment" style="transform: rotate(135deg) skewY(-45deg);"><span>1.25x</span></div>
+            <div class="segment" style="transform: rotate(180deg) skewY(-45deg);"><span>0x</span></div>
+            <div class="segment" style="transform: rotate(225deg) skewY(-45deg);"><span>0.5x</span></div>
+            <div class="segment" style="transform: rotate(270deg) skewY(-45deg);"><span>0x</span></div>
+            <div class="segment" style="transform: rotate(315deg) skewY(-45deg);"><span>0.1x</span></div>
+        </div>
     </div>
 
-    <div class="controls">
-        <input type="number" id="betAmt" class="bet-input" value="100">
-        <button id="spinBtn" class="spin-btn" onclick="startSpin()">تدوير العجلة ✨</button>
-        <p id="statusMsg" style="color:#888; margin-top:10px;">جرب حظك، الربح يصل إلى 1.25x</p>
+    <div class="bet-box">
+        <div class="bet-grid">
+            <button class="bet-btn" onclick="setBet(500)">500</button>
+            <button class="bet-btn" onclick="setBet(1000)">1000</button>
+            <button class="bet-btn" onclick="setBet(5000)">5000</button>
+            <button class="bet-btn" onclick="setBet(10000)">10k</button>
+        </div>
+        <input type="number" id="betAmt" class="bet-input" value="500">
+        <button id="spinBtn" class="spin-btn" onclick="startSmartSpin()">تدوير الحظ ✨</button>
     </div>
 
     <script>
@@ -58,57 +72,59 @@
             if(s.exists()){ score = s.val().score; document.getElementById('uBal').innerText = score; }
         });
 
-        function startSpin() {
+        function setBet(amt) { document.getElementById('betAmt').value = amt; }
+
+        function startSmartSpin() {
             if (isSpinning) return;
             let bet = parseInt(document.getElementById('betAmt').value);
             if (score < bet || bet <= 0) return alert("الرصيد لا يكفي!");
 
             isSpinning = true;
             document.getElementById('spinBtn').disabled = true;
-            
-            // خصم الرهان فوراً (فائدة للموقع)
             db.ref('players_logs/' + pName).update({ score: score - bet });
 
-            // --- خوارزمية الربح والخسارة (نظام 25% بحد أقصى) ---
-            let chance = Math.random() * 100;
+            // --- نظام العشوائية المنحازة (لصالحك) ---
+            let winChance;
+            if (bet < 1000) winChance = 35;       // مبالغ صغيرة: فرصة ربح 35%
+            else if (bet < 5000) winChance = 15; // مبالغ متوسطة: فرصة ربح 15%
+            else winChance = 3;                  // مبالغ ضخمة: فرصة ربح 3% فقط!
+
+            let randomRoll = Math.random() * 100;
             let targetDeg;
             let resultMulti;
 
-            if (chance < 75) { 
-                // 75% خسارة كاملة (0x)
-                targetDeg = Math.floor(Math.random() * 40) + 45; // زاوية الخسارة
+            if (randomRoll > winChance) { 
+                // المبرمج يقرر: خسارة
+                let loses = [22.5, 112.5, 202.5, 292.5]; 
+                targetDeg = loses[Math.floor(Math.random() * loses.length)];
                 resultMulti = 0;
-            } else if (chance < 95) {
-                // 20% استرجاع نصف الرهان (0.5x)
-                targetDeg = Math.floor(Math.random() * 40) + 135; 
-                resultMulti = 0.5;
             } else {
-                // 5% فقط ربح 25% (1.25x)
-                targetDeg = Math.floor(Math.random() * 40) + 225;
-                resultMulti = 1.25;
+                // المبرمج يقرر: ربح ضئيل (أقصى ربح 25%)
+                let winOptions = [67.5, 157.5, 247.5]; 
+                targetDeg = winOptions[Math.floor(Math.random() * winOptions.length)];
+                // نحدد المضاعف بناءً على الزاوية المختارة
+                if (targetDeg === 157.5) resultMulti = 1.25;
+                else if (targetDeg === 247.5) resultMulti = 0.5;
+                else resultMulti = 0.5;
             }
 
-            // تدوير العجلة (إضافة 3600 درجة لعمل 10 دورات قبل التوقف)
-            let totalRotation = targetDeg + 3600; 
+            let totalRotation = 3600 + (360 - targetDeg); 
             const wheel = document.getElementById('wheelMain');
+            wheel.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)";
             wheel.style.transform = `rotate(${totalRotation}deg)`;
 
             setTimeout(() => {
                 isSpinning = false;
                 document.getElementById('spinBtn').disabled = false;
-                
                 let winAmt = Math.floor(bet * resultMulti);
                 if (winAmt > 0) {
                     db.ref('players_logs/' + pName).update({ score: score + winAmt });
-                    alert(`🎉 مبروك! حصلت على مضاعف ${resultMulti}x وربحت ${winAmt}`);
+                    alert(`نتيجة الجولة: ربح ${winAmt} نقطة!`);
                 } else {
-                    alert("💥 حظاً أوفر! لم تربح هذه المرة.");
+                    alert("نتيجة الجولة: خسارة الرهان.");
                 }
-                
-                // إعادة تصفير الزاوية برمجياً دون حركة لضمان الدورة القادمة
                 wheel.style.transition = "none";
-                wheel.style.transform = `rotate(${targetDeg}deg)`;
-                setTimeout(() => wheel.style.transition = "transform 4s cubic-bezier(0.1, 0, 0.1, 1)", 50);
+                wheel.style.transform = `rotate(${360 - targetDeg}deg)`;
             }, 4000);
         }
     </script>
