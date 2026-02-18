@@ -3,44 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الألعاب الملكية 👑</title>
+    <title>منصة الملوك 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; }
         .header { padding: 30px; background: linear-gradient(to bottom, #111, #000); border-bottom: 2px solid #d4af37; }
-        .user-info { background: #1a1a1a; padding: 15px; margin: 20px auto; width: 80%; border-radius: 15px; border: 1px solid #d4af37; }
+        .user-card { background: #1a1a1a; padding: 20px; margin: 20px auto; width: 85%; border-radius: 20px; border: 1px solid #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
+        .balance { font-size: 35px; font-weight: 900; color: #d4af37; margin: 10px 0; }
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .game-card { background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; text-decoration: none; color: #fff; transition: 0.3s; }
-        .game-card:hover { transform: scale(1.05); border-color: #d4af37; }
-        .game-card h2 { margin: 10px 0 0 0; font-size: 18px; }
-        .game-icon { font-size: 40px; }
+        .game-card { background: #111; padding: 25px; border-radius: 20px; border: 1px solid #333; text-decoration: none; color: #fff; transition: 0.3s; display: block; }
+        .game-card:hover { border-color: #d4af37; transform: translateY(-5px); }
+        .icon { font-size: 45px; display: block; margin-bottom: 10px; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>منصة الملوك 🏆</h1>
+    <div class="header"><h1>مرحباً بك في المنصة 👑</h1></div>
+    <div class="user-card">
+        <div style="font-size: 18px;">اللاعب: <span id="uName" style="color:#d4af37">جاري التحميل...</span></div>
+        <div class="balance" id="uBalance">0</div>
+        <div style="font-size: 14px; color: #888;">رصيدك الموحد عبر كل الألعاب</div>
     </div>
-
-    <div class="user-info">
-        <div>مرحباً: <span id="userNameDisplay" style="color:#d4af37">...</span></div>
-        <div style="font-size: 24px; font-weight: 900;">💰 رصيدك: <span id="userBalanceDisplay">0</span></div>
-    </div>
-
     <div class="games-grid">
-        <a href="plane.html" class="game-card">
-            <div class="game-icon">🚀</div>
-            <h2>لعبة الطائرة</h2>
-        </a>
-        <a href="wheel.html" class="game-card">
-            <div class="game-icon">🎡</div>
-            <h2>عجلة الحظ</h2>
-        </a>
-        <a href="boxes.html" class="game-card">
-            <div class="game-icon">🎁</div>
-            <h2>الصناديق</h2>
-        </a>
+        <a href="plane.html" class="game-card"><span class="icon">🚀</span><span>الطائرة</span></a>
+        <a href="wheel.html" class="game-card"><span class="icon">🎡</span><span>العجلة</span></a>
     </div>
 
     <script>
@@ -50,21 +37,16 @@
 
         let pName = localStorage.getItem('pName');
         if (!pName) {
-            pName = prompt("ادخل اسمك لفتح حسابك الموحد:");
-            if (!pName) pName = "لاعب_" + Math.floor(Math.random()*999);
+            pName = prompt("ادخل اسمك لبدء اللعب:");
+            if (!pName) pName = "لاعب" + Math.floor(Math.random()*999);
             localStorage.setItem('pName', pName);
         }
-        document.getElementById('userNameDisplay').innerText = pName;
+        document.getElementById('uName').innerText = pName;
 
-        const userRef = db.ref('players_logs/' + pName);
-        userRef.on('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                userRef.set({ score: 500 });
-            } else {
-                document.getElementById('userBalanceDisplay').innerText = snapshot.val().score;
-            }
+        db.ref('players_logs/' + pName).on('value', (s) => {
+            if (!s.exists()) { db.ref('players_logs/' + pName).set({ score: 500 }); }
+            else { document.getElementById('uBalance').innerText = s.val().score; }
         });
     </script>
 </body>
 </html>
-
