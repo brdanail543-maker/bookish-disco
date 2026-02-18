@@ -3,154 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجر النرد الملكي 🎲</title>
+    <title>الطائرة الملكية ✈️</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
         
-        .top-bar { display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; align-items: center; }
-        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; font-size: 18px; }
-        .back-link { color: #d4af37; text-decoration: none; font-size: 14px; border: 1px solid #d4af37; padding: 4px 10px; border-radius: 5px; }
+        * { box-sizing: border-box; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 0; overflow: hidden; }
+        
+        /* الهيدر العلوي */
+        .header { display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; align-items: center; height: 60px; }
+        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; }
 
-        .game-title { margin-top: 20px; font-size: 24px; color: #fff; }
-        .multiplier-info { color: #d4af37; font-size: 14px; margin-bottom: 20px; }
+        /* منطقة الطيران (الرسم البياني) */
+        .game-area { height: 50vh; position: relative; background: radial-gradient(circle, #1a1a1a, #000); overflow: hidden; border-bottom: 1px solid #333; }
+        .multiplier { font-size: 60px; font-weight: 900; color: #fff; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
+        
+        #plane { width: 70px; position: absolute; bottom: 20%; left: 10%; display: none; filter: drop-shadow(0 0 10px #d4af37); z-index: 10; transition: transform 0.1s linear; }
+        #explosion { width: 100px; position: absolute; display: none; z-index: 11; transform: translate(-50%, -50%); }
 
-        /* منطقة النرد */
-        .dice-area { height: 180px; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
-        .dice { 
-            width: 100px; height: 100px; background: #fff; color: #000; 
-            font-size: 60px; display: flex; align-items: center; justify-content: center; 
-            border-radius: 20px; box-shadow: 0 0 30px #d4af37; 
-            transition: transform 0.1s; font-weight: 900;
-        }
+        /* منطقة التحكم والرهان (الخيارات) */
+        .controls { height: calc(50vh - 60px); background: #0d0d0d; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        
+        .bet-input-container { width: 100%; max-width: 300px; margin-bottom: 15px; }
+        .bet-label { font-size: 14px; color: #888; margin-bottom: 5px; display: block; }
+        .bet-input { background: #1a1a1a; border: 2px solid #444; color: #fff; padding: 12px; width: 100%; border-radius: 12px; font-size: 20px; text-align: center; font-weight: bold; outline: none; }
+        .bet-input:focus { border-color: #d4af37; }
 
-        /* أزرار اختيار الأرقام */
-        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 0 auto 20px; }
-        .num-btn { 
-            background: #111; border: 2px solid #333; color: #fff; 
-            padding: 15px; border-radius: 15px; font-size: 22px; 
-            cursor: pointer; transition: 0.3s; font-weight: bold;
-        }
-        .num-btn.active { border-color: #d4af37; background: #d4af37; color: #000; transform: scale(1.05); }
-
-        /* خيارات الرهان */
-        .bet-select { background: #111; color: #fff; border: 1px solid #d4af37; padding: 10px; border-radius: 10px; width: 120px; font-size: 18px; margin-bottom: 20px; }
-
-        .play-btn { 
+        .main-btn { 
             background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; 
-            width: 85%; max-width: 350px; padding: 18px; border-radius: 50px; 
-            font-size: 24px; font-weight: 900; border: none; cursor: pointer; 
-            box-shadow: 0 5px 15px rgba(212,175,55,0.4);
+            width: 100%; max-width: 300px; padding: 18px; border-radius: 50px; 
+            font-size: 22px; font-weight: 900; border: none; cursor: pointer; transition: 0.2s;
         }
-        .play-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+        .main-btn:active { transform: scale(0.98); }
+        .btn-cashout { background: linear-gradient(180deg, #27ae60, #1e8449) !important; color: #fff !important; }
+        
+        .status-msg { color: #d4af37; font-size: 14px; margin-top: 10px; height: 20px; }
     </style>
 </head>
 <body>
 
-    <audio id="sndRoll" src="https://www.soundjay.com/misc/sounds/dice-roll-1.mp3"></audio>
-    <audio id="sndWin" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
-
-    <div class="top-bar">
-        <div class="balance-chip">💰 <span id="uBalance">0</span></div>
-        <a href="index.html" class="back-link">🔙 رجوع</a>
+    <div class="header">
+        <div class="balance-chip">💰 <span id="uBal">0</span></div>
+        <a href="index.html" style="color:#d4af37; text-decoration:none; font-weight:bold;">🔙 خروج</a>
     </div>
 
-    <div class="game-title">توقع رقم النرد 🎲</div>
-    <div class="multiplier-info">اربح 5 أضعاف رهانك عند التوقع الصحيح!</div>
-
-    <div class="dice-area">
-        <div id="diceDisplay" class="dice">?</div>
+    <div class="game-area">
+        <div class="multiplier" id="multiDisplay">1.00x</div>
+        <img src="https://i.ibb.co/L8p6VpY/plane-gold.png" id="plane" alt="plane">
+        <img src="https://i.ibb.co/d7mP9K2/explosion.png" id="explosion" alt="boom">
     </div>
 
-    <div class="num-grid">
-        <div class="num-btn" onclick="selectNumber(1, this)">1</div>
-        <div class="num-btn" onclick="selectNumber(2, this)">2</div>
-        <div class="num-btn" onclick="selectNumber(3, this)">3</div>
-        <div class="num-btn" onclick="selectNumber(4, this)">4</div>
-        <div class="num-btn" onclick="selectNumber(5, this)">5</div>
-        <div class="num-btn" onclick="selectNumber(6, this)">6</div>
+    <div class="controls">
+        <div class="bet-input-container">
+            <span class="bet-label">مبلغ الرهان</span>
+            <input type="number" id="betAmt" class="bet-input" value="100" min="10">
+        </div>
+        
+        <button id="mainBtn" class="main-btn" onclick="handleAction()">إقلاع 🛫</button>
+        <div id="status" class="status-msg">ضع رهانك وابدأ الرحلة</div>
     </div>
 
-    <div>
-        <span style="color: #888;">مبلغ الرهان:</span><br>
-        <select id="betVal" class="bet-select">
-            <option value="100">100</option>
-            <option value="500">500</option>
-            <option value="1000">1000</option>
-            <option value="5000">5000</option>
-        </select>
-    </div>
-
-    <button class="play-btn" id="rollBtn" onclick="playDice()">إرمِ النرد 🎲</button>
+    <audio id="sndExplode" src="https://www.soundjay.com/button/sounds/button-10.mp3"></audio>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
+        
         let pName = localStorage.getItem('pName');
-        let score = 0, selectedNum = 0, isRolling = false;
+        let score = 0, multi = 1.0, isFlying = false, currentBet = 0, timer;
 
-        if(!pName) window.location.href="index.html";
-
-        // مزامنة الرصيد
+        // جلب الرصيد
         db.ref('players_logs/' + pName).on('value', s => {
-            if(s.exists()){ score = s.val().score; document.getElementById('uBalance').innerText = score; }
+            if(s.exists()){ score = s.val().score; document.getElementById('uBal').innerText = score; }
         });
 
-        function selectNumber(num, el) {
-            if(isRolling) return;
-            selectedNum = num;
-            document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('active'));
-            el.classList.add('active');
+        function handleAction() {
+            if (!isFlying) startGame();
+            else cashOut();
         }
 
-        function playDice() {
-            let bet = parseInt(document.getElementById('betVal').value);
-            if (selectedNum === 0) return alert("الرجاء اختيار رقم أولاً!");
-            if (score < bet) return alert("رصيدك لا يكفي!");
-            if (isRolling) return;
+        function startGame() {
+            currentBet = parseInt(document.getElementById('betAmt').value);
+            if (isNaN(currentBet) || currentBet <= 0) return alert("الرجاء إدخال مبلغ صحيح");
+            if (score < currentBet) return alert("رصيدك غير كافٍ!");
 
-            isRolling = true;
-            document.getElementById('rollBtn').disabled = true;
-            document.getElementById('sndRoll').play();
-
-            // خصم الرهان
-            db.ref('players_logs/' + pName).update({ score: score - bet });
-
-            let diceEl = document.getElementById('diceDisplay');
-            let counter = 0;
+            // خصم المبلغ
+            db.ref('players_logs/' + pName).update({ score: score - currentBet });
             
-            // أنيميشن التدحرج
-            let interval = setInterval(() => {
-                let tempNum = Math.floor(Math.random() * 6) + 1;
-                diceEl.innerText = tempNum;
-                diceEl.style.transform = `rotate(${Math.random() * 20 - 10}deg) scale(1.1)`;
-                counter++;
+            isFlying = true;
+            multi = 1.0;
+            
+            // تحديث الواجهة
+            document.getElementById('mainBtn').innerText = "سحب الأرباح 💰";
+            document.getElementById('mainBtn').classList.add('btn-cashout');
+            document.getElementById('plane').style.display = "block";
+            document.getElementById('explosion').style.display = "none";
+            document.getElementById('multiDisplay').style.color = "#fff";
+            document.getElementById('status').innerText = "طيران آمن... اسحب قبل الانفجار!";
 
-                if (counter > 15) {
-                    clearInterval(interval);
-                    let finalNum = Math.floor(Math.random() * 6) + 1;
-                    diceEl.innerText = finalNum;
-                    diceEl.style.transform = `rotate(0deg) scale(1)`;
-                    finishGame(finalNum, bet);
-                }
-            }, 80);
+            // تحديد نقطة الانفجار (الخوارزمية الموزونة)
+            let chance = Math.random() * 100;
+            let crashPoint = (chance < 30) ? (1.0 + Math.random() * 0.5) : 
+                             (chance < 85) ? (1.5 + Math.random() * 2.5) : 
+                                             (4.0 + Math.random() * 6.0);
+
+            timer = setInterval(() => {
+                multi += 0.01;
+                document.getElementById('multiDisplay').innerText = multi.toFixed(2) + "x";
+                
+                // تحريك الطائرة
+                let x = (multi - 1) * 60;
+                let y = (multi - 1) * 40;
+                document.getElementById('plane').style.transform = `translate(${x}px, -${y}px)`;
+
+                if (multi >= crashPoint) explode();
+            }, 60);
         }
 
-        function finishGame(result, bet) {
-            isRolling = false;
-            document.getElementById('rollBtn').disabled = false;
+        function cashOut() {
+            if (!isFlying) return;
+            clearInterval(timer);
+            let win = Math.floor(currentBet * multi);
+            db.ref('players_logs/' + pName).update({ score: score + win });
+            alert(`✅ تم السحب! ربحت ${win} نقطة`);
+            resetUI();
+        }
 
-            if (result === selectedNum) {
-                let winAmount = bet * 5;
-                db.ref('players_logs/' + pName).update({ score: score + winAmount });
-                document.getElementById('sndWin').play();
-                alert(`🎊 مبروك! ظهر الرقم ${result}. ربحت ${winAmount} نقطة!`);
-            } else {
-                alert(`❌ حظ أوفر! الرقم كان ${result}.`);
-            }
+        function explode() {
+            clearInterval(timer);
+            isFlying = false;
+            document.getElementById('sndExplode').play();
+            
+            // إظهار الانفجار في مكان الطائرة
+            const planePos = document.getElementById('plane').getBoundingClientRect();
+            const explosion = document.getElementById('explosion');
+            explosion.style.left = (planePos.left + 35) + "px";
+            explosion.style.top = (planePos.top + 35) + "px";
+            explosion.style.display = "block";
+            
+            document.getElementById('plane').style.display = "none";
+            document.getElementById('multiDisplay').style.color = "#ff4444";
+            document.getElementById('status').innerText = "💥 انفجرت الطائرة!";
+            
+            setTimeout(resetUI, 2500);
+        }
+
+        function resetUI() {
+            clearInterval(timer);
+            isFlying = false;
+            document.getElementById('mainBtn').innerText = "إقلاع 🛫";
+            document.getElementById('mainBtn').classList.remove('btn-cashout');
+            document.getElementById('plane').style.display = "none";
+            document.getElementById('plane').style.transform = "translate(0,0)";
+            document.getElementById('explosion').style.display = "none";
+            document.getElementById('multiDisplay').innerText = "1.00x";
+            document.getElementById('status').innerText = "ضع رهانك وابدأ الرحلة";
         }
     </script>
 </body>
