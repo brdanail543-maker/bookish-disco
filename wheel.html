@@ -2,42 +2,128 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>عجلة الحظ الموحدة 🎡</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>العجلة الذهبية 🎡</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        body { background: #000; color: #fff; font-family: sans-serif; text-align: center; }
-        .wheel-container { margin-top: 50px; }
-        #balanceDisplay { color: #d4af37; font-size: 24px; font-weight: bold; }
-        .btn-spin { background: #d4af37; padding: 15px 40px; border-radius: 30px; border: none; font-size: 20px; cursor: pointer; margin-top: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
+        .header { padding: 20px; border-bottom: 2px solid #d4af37; background: #111; }
+        .balance-box { font-size: 24px; color: #d4af37; font-weight: 900; margin: 10px 0; }
+        
+        /* تصميم العجلة */
+        .wheel-container { position: relative; width: 320px; height: 320px; margin: 40px auto; border: 5px solid #d4af37; border-radius: 50%; box-shadow: 0 0 20px #d4af37; }
+        #wheel { width: 100%; height: 100%; border-radius: 50%; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); }
+        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 40px; z-index: 10; filter: drop-shadow(0 0 5px #000); }
+
+        /* التحكم */
+        .controls { padding: 20px; }
+        .bet-options { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .bet-btn { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 10px 20px; border-radius: 10px; cursor: pointer; }
+        .bet-btn.active { background: #d4af37; color: #000; font-weight: bold; border-color: #fff; }
+        .spin-btn { background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; padding: 15px 60px; border-radius: 50px; font-size: 22px; font-weight: 900; border: none; cursor: pointer; box-shadow: 0 5px 15px rgba(212,175,55,0.4); }
+        .spin-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
+        .back-link { position: absolute; top: 15px; right: 15px; color: #d4af37; text-decoration: none; border: 1px solid #d4af37; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <a href="index.html" style="color:#fff; position:absolute; top:10px; right:10px;">🔙 خروج</a>
-    <h1>عجلة الحظ 🎡</h1>
-    <div id="balanceDisplay">رصيدك: <span id="userBalance">...</span></div>
-    
-    <div class="wheel-container">
-        <button class="btn-spin" onclick="spinNow()">لف العجلة (رهان 100)</button>
+
+    <div class="header">
+        <a href="index.html" class="back-link">🔙 رجوع</a>
+        <h1>عجلة الحظ الملكية 🎡</h1>
+        <div class="balance-box">💰 رصيدك: <span id="userBalance">0</span></div>
     </div>
+
+    <div class="wheel-container">
+        <img src="https://i.ibb.co/3Ym9ZpC/pointer.png" class="pointer"> <img src="https://i.ibb.co/vVpxm75/wheel.png" id="wheel" style="transform: rotate(0deg);"> </div>
+
+    <div class="controls">
+        <div class="bet-options">
+            <div class="bet-btn active" onclick="setBet(100, this)">100</div>
+            <div class="bet-btn" onclick="setBet(500, this)">500</div>
+            <div class="bet-btn" onclick="setBet(1000, this)">1000</div>
+        </div>
+        <button class="spin-btn" id="spinBtn" onclick="spinWheel()">إبدأ اللف 🎰</button>
+    </div>
+
+    <audio id="sndSpin" src="https://www.soundjay.com/misc/sounds/spinning-wheel-1.mp3"></audio>
+    <audio id="sndWin" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let pName = localStorage.getItem('pName');
-        let score = 0;
+        let score = 0, currentBet = 100, isSpinning = false;
 
+        if(!pName) window.location.href="index.html";
+
+        // مزامنة الرصيد الموحد
         db.ref('players_logs/' + pName).on('value', s => {
-            if(s.exists()){ score = s.val().score; document.getElementById('userBalance').innerText = score; }
+            if(s.exists()){ 
+                score = s.val().score; 
+                document.getElementById('userBalance').innerText = score; 
+            }
         });
 
-        function spinNow() {
-            if(score < 100) return alert("رصيدك لا يكفي!");
-            // منطق الربح والخسارة هنا
-            let win = Math.random() > 0.5 ? 200 : 0;
-            db.ref('players_logs/'+pName).update({score: score - 100 + win});
-            alert(win > 0 ? "مبروك ربحت 200" : "للأسف لم تربح");
+        function setBet(amt, el) {
+            if(isSpinning) return;
+            currentBet = amt;
+            document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+        }
+
+        function spinWheel() {
+            if(isSpinning || score < currentBet) {
+                if(score < currentBet) alert("رصيدك غير كافٍ!");
+                return;
+            }
+
+            isSpinning = true;
+            document.getElementById('spinBtn').disabled = true;
+            db.ref('players_logs/' + pName).update({ score: score - currentBet });
+            document.getElementById('sndSpin').play();
+
+            // حساب زاوية دوران عشوائية (على الأقل 5 لفات كاملة)
+            const randomDegree = Math.floor(Math.random() * 360) + 1800; 
+            const wheel = document.getElementById('wheel');
+            wheel.style.transform = `rotate(${randomDegree}deg)`;
+
+            setTimeout(() => {
+                isSpinning = false;
+                document.getElementById('spinBtn').disabled = false;
+                
+                // حساب الجائزة بناءً على الزاوية النهائية
+                const actualDegree = randomDegree % 360;
+                calculatePrize(actualDegree);
+            }, 4000);
+        }
+
+        function calculatePrize(deg) {
+            let winMultiplier = 0;
+            // تقسيم العجلة (هذا مثال يعتمد على شكل العجلة الافتراضية)
+            if (deg >= 0 && deg < 45) winMultiplier = 2;   // 2x
+            else if (deg >= 45 && deg < 90) winMultiplier = 0;  // حاول مرة أخرى
+            else if (deg >= 90 && deg < 135) winMultiplier = 5; // 5x
+            else if (deg >= 135 && deg < 180) winMultiplier = 0.5; // نصف المبلغ
+            else if (deg >= 180 && deg < 225) winMultiplier = 1.5; // 1.5x
+            else if (deg >= 225 && deg < 270) winMultiplier = 0; // حظ أوفر
+            else if (deg >= 270 && deg < 315) winMultiplier = 10; // الجائزة الكبرى 10x
+            else winMultiplier = 1; // استرداد الرهان
+
+            let totalWin = Math.floor(currentBet * winMultiplier);
+            if(totalWin > 0) {
+                db.ref('players_logs/' + pName).update({ score: score + totalWin });
+                document.getElementById('sndWin').play();
+                alert(`مبروك! فزت بـ ${totalWin} نقطة 🎉`);
+            } else {
+                alert("حظ أوفر في المرة القادمة! 💔");
+            }
+            // إعادة ضبط العجلة تقنياً
+            document.getElementById('wheel').style.transition = "none";
+            document.getElementById('wheel').style.transform = `rotate(${deg}deg)`;
+            setTimeout(() => { document.getElementById('wheel').style.transition = "transform 4s cubic-bezier(0.15, 0, 0.15, 1)"; }, 50);
         }
     </script>
 </body>
