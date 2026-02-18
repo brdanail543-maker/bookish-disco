@@ -8,205 +8,209 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        body {
-            background: #000; color: #fff; font-family: 'Cairo', sans-serif;
-            margin: 0; padding: 20px; text-align: center;
+        
+        :root { --gold: #ffcc33; --red: #ff4444; --bg: #0d0d0d; }
+        
+        body { 
+            background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; 
+            margin: 0; padding: 15px; text-align: center; overflow-x: hidden;
         }
-        .container { max-width: 400px; margin: auto; }
-        .status-card {
-            background: rgba(255, 255, 255, 0.05); border: 1px solid #444;
-            border-radius: 20px; padding: 20px; margin-bottom: 20px;
+
+        .container { max-width: 450px; margin: auto; }
+
+        /* شاشة الدخول والقائمة */
+        .card { background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid #333; padding: 20px; margin-bottom: 20px; }
+        .input-bet { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: #111; color: #fff; font-size: 18px; text-align: center; }
+        .btn-main { background: linear-gradient(45deg, var(--gold), #b8860b); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 85%; cursor: pointer; margin-top: 15px; }
+
+        /* ساحة القتال */
+        .battle-arena { 
+            display: none; position: relative; height: 300px; 
+            background: url('https://i.pinimg.com/originals/15/8e/3c/158e3c8801736655c681283286576b53.gif'); 
+            background-size: cover; border-radius: 20px; border: 2px solid var(--red); margin-top: 10px;
         }
-        .bet-input {
-            width: 80%; padding: 10px; border-radius: 10px; border: 1px solid #ff4444;
-            background: #111; color: #fff; font-size: 18px; margin-bottom: 10px;
+        .player { position: absolute; bottom: 20px; transition: 0.5s; width: 100px; }
+        .p1 { left: 10px; } .p2 { right: 10px; }
+        .player img { width: 70px; filter: drop-shadow(0 0 10px var(--red)); }
+        .p-label { background: rgba(0,0,0,0.8); font-size: 11px; padding: 2px 5px; border-radius: 5px; border: 1px solid var(--gold); }
+
+        /* الأزرار الـ 3D */
+        .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+        .action-btn { 
+            background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; 
+            padding: 10px 5px; border-radius: 15px; cursor: pointer; transition: 0.3s; font-size: 12px;
         }
-        .btn {
-            background: linear-gradient(45deg, #ff4444, #800000);
-            color: white; border: none; padding: 12px 25px;
-            border-radius: 12px; font-weight: bold; cursor: pointer; width: 85%;
-            font-size: 16px; margin-top: 10px;
+        .action-btn img { width: 40px; display: block; margin: 0 auto 5px; }
+        .action-btn:active { transform: scale(0.9); background: var(--red); }
+
+        .announcement { 
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 28px; font-weight: 900; color: var(--gold); text-shadow: 0 0 15px #000;
+            display: none; z-index: 100; width: 100%;
         }
-        .btn:disabled { background: #333; cursor: not-allowed; }
-        .game-area { display: none; margin-top: 20px; }
-        .vs-container { display: flex; justify-content: space-around; align-items: center; margin: 20px 0; }
-        .player-box { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #d4af37; width: 40%; }
-        .info-text { font-size: 14px; color: #888; margin-top: 10px; }
+
+        .room-item { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
+        .btn-join { background: var(--red); border: none; color: #fff; padding: 7px 15px; border-radius: 8px; font-weight: bold; }
+
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h2 style="color: #ff4444;">⚔️ ساحة التحدي ⚔️</h2>
-    
-    <div id="lobby" class="status-card">
-        <p>أدخل مبلغ الرهان:</p>
-        <input type="number" id="betAmount" class="bet-input" placeholder="مثلاً: 1000">
-        <button id="createRoomBtn" class="btn" onclick="createChallenge()">بدء تحدي جديد</button>
-        <p class="info-text">ملاحظة: يتم خصم 25% رسوم للمنصة من إجمالي الوعاء</p>
+    <div id="setup-screen">
+        <h2 style="color: var(--red);">⚔️ ساحة التحدي الملكية ⚔️</h2>
+        <div class="card">
+            <p>مرحباً <span id="myName" style="color:var(--gold)">...</span></p>
+            <input type="number" id="betAmount" class="input-bet" placeholder="مبلغ الرهان 💰">
+            <button class="btn-main" onclick="createRoom()">إنشاء تحدي جديد</button>
+        </div>
+        
+        <div style="text-align: right; padding-right: 10px; color: #888;">التحديات النشطة:</div>
+        <div id="rooms-list" style="margin-top:10px;"></div>
     </div>
 
-    <div id="activeChallenges" class="status-card" style="display: none;">
-        <p style="color: #d4af37;">تحديات متاحة الآن:</p>
-        <div id="roomsList"></div>
-    </div>
+    <div id="battle-screen" style="display:none;">
+        <div class="card" style="padding:10px; margin-bottom:10px;">
+            <span style="color:var(--gold)">الجائزة: <span id="prizeDisplay">0</span> 💰</span>
+            <div id="game-status" style="font-size:13px; color:#aaa;">بانتظار الخصم...</div>
+        </div>
 
-    <div id="gameArea" class="game-area">
-        <div class="status-card">
-            <h3 id="gameStatus">بانتظار الخصم...</h3>
-            <div class="vs-container">
-                <div class="player-box"><span id="p1Name">؟</span></div>
-                <div style="font-size: 24px; font-weight: 900;">VS</div>
-                <div class="player-box"><span id="p2Name">؟</span></div>
+        <div class="battle-arena">
+            <div class="announcement" id="winMsg"></div>
+            
+            <div class="player p1">
+                <div class="p-label" id="p1-name">...</div>
+                <img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png">
             </div>
-            <div id="controls" style="display: none;">
-                <p>اختر سلاحك الملكي:</p>
-                <button class="btn" onclick="playTurn('sword')">⚔️ سيف</button>
-                <button class="btn" onclick="playTurn('shield')">🛡️ درع</button>
+
+            <div class="player p2">
+                <div class="p-label" id="p2-name">...</div>
+                <img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png" style="transform: scaleX(-1);">
             </div>
         </div>
+
+        <div class="actions" id="game-controls" style="visibility:hidden;">
+            <button class="action-btn" onclick="sendMove('🔥')">
+                <img src="https://cdn-icons-png.flaticon.com/512/4245/4245395.png"> هجوم
+            </button>
+            <button class="action-btn" onclick="sendMove('🛡️')">
+                <img src="https://cdn-icons-png.flaticon.com/512/1042/1042183.png"> دفاع
+            </button>
+            <button class="action-btn" onclick="sendMove('⚡')">
+                <img src="https://cdn-icons-png.flaticon.com/512/1251/1251785.png"> مباغتة
+            </button>
+        </div>
+        <p style="font-size:10px; color:#555; margin-top:20px;">رسوم الإمبراطورية 25% من إجمالي الرهان</p>
     </div>
-    
-    <a href="index.html" style="color: #888; text-decoration: none; font-size: 14px;">🔙 العودة للمنصة</a>
 </div>
 
 <script>
-    // إعدادات Firebase
     const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const pName = localStorage.getItem('pName') || "لاعب مجهول";
-    let currentRoomId = null;
+    const pName = localStorage.getItem('pName') || "مجهول";
+    let roomId = null;
+    document.getElementById('myName').innerText = pName;
 
-    // وظيفة إنشاء تحدي
-    function createChallenge() {
+    function createRoom() {
         const bet = parseInt(document.getElementById('betAmount').value);
-        if (isNaN(bet) || bet <= 0) return alert("أدخل مبلغاً صحيحاً");
+        if(!bet || bet <= 0) return alert("أدخل مبلغاً صحيحاً!");
 
-        // التأكد من الرصيد أولاً
-        db.ref('players_logs/' + pName + '/score').once('value').then(snap => {
-            const balance = snap.val() || 0;
-            if (balance < bet) return alert("رصيدك غير كافٍ!");
-
-            // خصم رهان البداية
-            db.ref('players_logs/' + pName).update({ score: balance - bet });
-
-            // إنشاء غرفة
-            const newRoom = db.ref('challenges').push();
-            currentRoomId = newRoom.key;
-            newRoom.set({
-                p1: pName,
-                p2: null,
-                bet: bet,
-                status: 'waiting',
-                p1Move: null,
-                p2Move: null
-            });
-            showGame(pName, "؟", "بانتظار الخصم...");
+        db.ref('players_logs/'+pName+'/score').once('value').then(s => {
+            const balance = s.val() || 0;
+            if(balance < bet) return alert("رصيدك لا يكفي!");
+            
+            db.ref('players_logs/'+pName).update({score: balance - bet});
+            const newRoom = db.ref('pvp_rooms').push();
+            roomId = newRoom.key;
+            newRoom.set({ p1: pName, bet: bet, status: 'waiting' });
+            initBattle(bet, pName, "بانتظار المنافس...");
         });
     }
 
-    // عرض الغرف المتاحة للآخرين
-    db.ref('challenges').on('value', snap => {
+    function initBattle(bet, p1, status) {
+        document.getElementById('setup-screen').style.display = 'none';
+        document.getElementById('battle-screen').style.display = 'block';
+        document.getElementById('prizeDisplay').innerText = (bet * 2 * 0.75).toLocaleString();
+        document.getElementById('p1-name').innerText = p1;
+        document.getElementById('game-status').innerText = status;
+
+        db.ref('pvp_rooms/'+roomId).on('value', snap => {
+            const room = snap.val();
+            if(!room) return;
+            if(room.p2) {
+                document.getElementById('p2-name').innerText = room.p2;
+                document.getElementById('game-controls').style.visibility = 'visible';
+                document.getElementById('game-status').innerText = "بدأ القتال! اختر حركتك";
+            }
+            if(room.m1 && room.m2) finishGame(room);
+        });
+    }
+
+    db.ref('pvp_rooms').on('value', snap => {
         const rooms = snap.val();
-        const list = document.getElementById('roomsList');
-        const lobby = document.getElementById('activeChallenges');
+        const list = document.getElementById('rooms-list');
         list.innerHTML = "";
-        
-        if (rooms) {
-            lobby.style.display = "block";
-            for (let id in rooms) {
-                if (rooms[id].status === 'waiting' && rooms[id].p1 !== pName) {
-                    list.innerHTML += `<div style="margin: 10px; border: 1px solid #444; padding: 10px; border-radius: 10px;">
-                        <span>${rooms[id].p1} يتحدى بـ ${rooms[id].bet}💰</span>
-                        <button class="btn" style="width: auto; padding: 5px 15px;" onclick="joinChallenge('${id}', ${rooms[id].bet})">قبول</button>
-                    </div>`;
-                }
+        for(let id in rooms) {
+            if(rooms[id].status === 'waiting' && rooms[id].p1 !== pName) {
+                list.innerHTML += `<div class="room-item">
+                    <span>👑 ${rooms[id].p1} <small>(${rooms[id].bet}💰)</small></span>
+                    <button class="btn-join" onclick="joinRoom('${id}', ${rooms[id].bet})">تحدي</button>
+                </div>`;
             }
         }
     });
 
-    function joinChallenge(id, bet) {
-        db.ref('players_logs/' + pName + '/score').once('value').then(snap => {
-            const balance = snap.val() || 0;
-            if (balance < bet) return alert("رصيدك غير كافٍ!");
-
-            db.ref('players_logs/' + pName).update({ score: balance - bet });
-            db.ref('challenges/' + id).update({ p2: pName, status: 'playing' });
-            currentRoomId = id;
-            showGame(null, pName, "بدأ التحدي!");
+    function joinRoom(id, bet) {
+        db.ref('players_logs/'+pName+'/score').once('value').then(s => {
+            if((s.val()||0) < bet) return alert("رصيدك ناقص!");
+            db.ref('players_logs/'+pName).update({score: s.val() - bet});
+            db.ref('pvp_rooms/'+id).update({p2: pName, status: 'playing'});
+            roomId = id;
+            initBattle(bet, "...", "أنت في القتال!");
         });
     }
 
-    function showGame(p1, p2, status) {
-        document.getElementById('lobby').style.display = "none";
-        document.getElementById('activeChallenges').style.display = "none";
-        document.getElementById('gameArea').style.display = "block";
-        document.getElementById('gameStatus').innerText = status;
-        if (p1) document.getElementById('p1Name').innerText = p1;
-        if (p2) document.getElementById('p2Name').innerText = p2;
-        
-        // تفعيل التحكم إذا دخل اللاعب الثاني
-        db.ref('challenges/' + currentRoomId).on('value', snap => {
-            const room = snap.val();
-            if (!room) return;
-            document.getElementById('p1Name').innerText = room.p1;
-            document.getElementById('p2Name').innerText = room.p2 || "؟";
-            
-            if (room.status === 'playing') {
-                document.getElementById('controls').style.display = "block";
-                document.getElementById('gameStatus').innerText = "اختر سلاحك!";
-            }
-
-            if (room.p1Move && room.p2Move) {
-                determineWinner(room);
-            }
+    function sendMove(m) {
+        db.ref('pvp_rooms/'+roomId).once('value').then(snap => {
+            const moveKey = (snap.val().p1 === pName) ? 'm1' : 'm2';
+            db.ref('pvp_rooms/'+roomId).update({ [moveKey]: m });
+            document.getElementById('game-controls').style.visibility = 'hidden';
+            document.getElementById('game-status').innerText = "انتظر حركة الخصم...";
         });
     }
 
-    function playTurn(move) {
-        db.ref('challenges/' + currentRoomId).once('value').then(snap => {
-            const room = snap.val();
-            if (pName === room.p1) db.ref('challenges/' + currentRoomId).update({ p1Move: move });
-            else db.ref('challenges/' + currentRoomId).update({ p2Move: move });
-            document.getElementById('controls').style.display = "none";
-            document.getElementById('gameStatus').innerText = "بانتظار حركة الخصم...";
-        });
-    }
-
-    function determineWinner(room) {
-        let winner = null;
-        const m1 = room.p1Move;
-        const m2 = room.p2Move;
-
-        if (m1 === m2) winner = "draw";
-        else if ((m1 === 'sword' && m2 === 'shield') || (m1 === 'shield' && m2 === 'sword')) {
-            // منطق عشوائي في حالة السيف والدرع أو حسب القواعد التي تفضلها
-            winner = Math.random() > 0.5 ? room.p1 : room.p2;
+    function finishGame(room) {
+        let win = "draw";
+        const m1 = room.m1; const m2 = room.m2;
+        if(m1 !== m2) {
+            if((m1==='🔥'&&m2==='⚡') || (m1==='⚡'&&m2==='🛡️') || (m1==='🛡️'&&m2==='🔥')) win = room.p1;
+            else win = room.p2;
         }
 
-        const totalPool = room.bet * 2;
-        const commission = totalPool * 0.25;
-        const prize = totalPool - commission;
+        const total = room.bet * 2;
+        const prize = total * 0.75;
+        const comm = total * 0.25;
 
-        if (winner === "draw") {
-            // إعادة الأموال في حالة التعادل (اختياري)
-            db.ref('players_logs/' + room.p1 + '/score').transaction(s => (s||0) + room.bet);
-            db.ref('players_logs/' + room.p2 + '/score').transaction(s => (s||0) + room.bet);
-            alert("تعادل! تم إعادة الرهان");
+        const msg = document.getElementById('winMsg');
+        msg.style.display = "block";
+        
+        if(win === "draw") {
+            msg.innerText = "تـعـادل! ⚖️";
+            db.ref('players_logs/'+room.p1+'/score').transaction(s=>(s||0)+room.bet);
+            db.ref('players_logs/'+room.p2+'/score').transaction(s=>(s||0)+room.bet);
         } else {
-            // إضافة الربح للفائز
-            db.ref('players_logs/' + winner + '/score').transaction(s => (s||0) + prize);
-            // إضافة العموله لك في مسار خاص
-            db.ref('admin_profits/total').transaction(s => (s||0) + commission);
-            alert("الفائز هو: " + winner + " حصل على " + prize + "💰");
+            msg.innerText = (win === pName) ? "لـقـد فـزت! 🎉" : "خـسـرت 💀";
+            db.ref('players_logs/'+win+'/score').transaction(s=>(s||0)+prize);
+            db.ref('admin_profits/total').transaction(s=>(s||0)+comm);
         }
-        
-        db.ref('challenges/' + currentRoomId).remove();
-        location.reload();
+
+        setTimeout(() => {
+            db.ref('pvp_rooms/'+roomId).remove();
+            location.reload();
+        }, 4000);
     }
 </script>
-
 </body>
 </html>
