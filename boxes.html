@@ -3,61 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صناديق الكنز 📦</title>
+    <title>منجم الذهب 🎁</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap');
-        body { background: radial-gradient(circle, #1a0f00 0%, #000 100%); color: #d4af37; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 20px; }
-        .bal-card { background: #111; border: 2px solid #d4af37; padding: 15px; border-radius: 15px; margin-bottom: 30px; display: inline-block; min-width: 200px; }
-        .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; max-width: 350px; margin: 0 auto; }
-        .box { 
-            background: #1a1a1a; border: 2px solid #444; height: 100px; border-radius: 20px; 
-            display: flex; align-items: center; justify-content: center; font-size: 45px; 
-            cursor: pointer; transition: 0.3s;
-        }
-        .box:active { transform: scale(0.9); border-color: #ffd700; }
-        .btn-back { display: inline-block; margin-top: 30px; color: #d4af37; text-decoration: none; border-bottom: 1px solid #d4af37; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding-bottom: 50px; }
+        .header { padding: 20px; background: #111; border-bottom: 2px solid #d4af37; margin-bottom: 20px; }
+        .balance-box { font-size: 24px; color: #d4af37; font-weight: 900; margin-bottom: 10px; }
+        
+        /* شبكة الصناديق */
+        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 350px; margin: 20px auto; padding: 10px; }
+        .box { width: 75px; height: 75px; background: #222; border: 2px solid #444; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; transition: 0.3s; }
+        .box.open { background: #111; border-color: #d4af37; cursor: default; }
+        .box.bomb { background: #c0392b; }
+        .box.win { background: #27ae60; }
+
+        /* التحكم */
+        .controls { background: #0d0d0d; padding: 20px; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; }
+        .bet-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto 15px; }
+        .btn-opt { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; }
+        .btn-opt.active { background: #d4af37; color: #000; font-weight: bold; }
+        .btn-play { background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; padding: 15px 50px; border-radius: 30px; border: none; font-size: 20px; font-weight: bold; cursor: pointer; width: 80%; }
+        .btn-cashout { background: #27ae60; color: #fff; display: none; }
+        
+        .back-link { position: absolute; top: 15px; right: 15px; color: #d4af37; text-decoration: none; border: 1px solid #d4af37; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
-    <div class="bal-card">
-        <div>💰 الرصيد الملكي</div>
-        <div id="uBal" style="font-size: 24px; color: #fff;">0</div>
+
+    <div class="header">
+        <a href="index.html" class="back-link">🔙 رجوع</a>
+        <h1>صناديق الحظ 🎁</h1>
+        <div class="balance-box">💰 <span id="userBalance">0</span></div>
     </div>
-    <div class="grid">
-        <div class="box" onclick="openBox(this)">📦</div>
-        <div class="box" onclick="openBox(this)">📦</div>
-        <div class="box" onclick="openBox(this)">📦</div>
-        <div class="box" onclick="openBox(this)">📦</div>
-        <div class="box" onclick="openBox(this)">📦</div>
-        <div class="box" onclick="openBox(this)">📦</div>
+
+    <div id="status" style="color: #888;">اختر رهانك وابدأ اللعب</div>
+    
+    <div class="grid" id="gameGrid">
+        </div>
+
+    <div class="controls">
+        <div class="bet-btns" id="betBtns">
+            <div class="btn-opt" onclick="setBet(50, this)">50</div>
+            <div class="btn-opt active" onclick="setBet(100, this)">100</div>
+            <div class="btn-opt" onclick="setBet(500, this)">500</div>
+        </div>
+        <button class="btn-play" id="actionBtn" onclick="startGame()">ابدأ اللعب 🎮</button>
     </div>
-    <p>تكلفة الفتح: 500 نقطة</p>
-    <a href="index.html" class="btn-back">⬅ العودة للرئيسية</a>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let user = localStorage.getItem('game_user') || "لاعب";
-        let bal = 0;
+        let pName = localStorage.getItem('pName');
+        let score = 0, currentBet = 100, isPlaying = false, multiplier = 1.0, openedCount = 0;
+        let bombs = [];
 
-        db.ref('players_logs/'+user).on('value', s => {
-            if(s.val()){
-                bal = s.val().score;
-                document.getElementById('uBal').innerText = bal.toLocaleString();
-            }
+        if(!pName) window.location.href="index.html";
+
+        // التزامن مع الحساب الموحد
+        db.ref('players_logs/' + pName).on('value', s => {
+            if(s.exists()){ score = s.val().score; document.getElementById('userBalance').innerText = score; }
         });
 
-        function openBox(el) {
-            if(bal < 500) return alert("رصيدك لا يكفي!");
-            let win = Math.random() < 0.2; 
-            let prize = win ? 2500 : 0;
-            db.ref('players_logs/'+user).update({ score: bal - 500 + prize });
-            el.innerText = win ? "💎" : "💨";
-            setTimeout(() => { alert(win ? "مبروك! وجدت 2500 نقطة" : "للأسف فارغ"); el.innerText = "📦"; }, 500);
+        function setBet(amt, el) {
+            if(isPlaying) return;
+            currentBet = amt;
+            document.querySelectorAll('.btn-opt').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
         }
+
+        function createGrid() {
+            const grid = document.getElementById('gameGrid');
+            grid.innerHTML = "";
+            for(let i=0; i<16; i++) {
+                let box = document.createElement('div');
+                box.className = "box";
+                box.innerHTML = "📦";
+                box.onclick = () => openBox(i, box);
+                grid.appendChild(box);
+            }
+        }
+
+        function startGame() {
+            if(score < currentBet) return alert("رصيدك لا يكفي!");
+            isPlaying = true; openedCount = 0; multiplier = 1.0;
+            db.ref('players_logs/'+pName).update({score: score - currentBet});
+            
+            // توزيع 3 قنابل عشوائية
+            bombs = [];
+            while(bombs.length < 3) {
+                let r = Math.floor(Math.random() * 16);
+                if(!bombs.includes(r)) bombs.push(r);
+            }
+
+            createGrid();
+            document.getElementById('actionBtn').innerText = "سحب الأرباح (0)";
+            document.getElementById('actionBtn').style.display = "none";
+            document.getElementById('betBtns').style.opacity = "0.3";
+            document.getElementById('status').innerText = "احذر من القنابل! افتح الصناديق...";
+        }
+
+        function openBox(index, el) {
+            if(!isPlaying || el.classList.contains('open')) return;
+
+            el.classList.add('open');
+            if(bombs.includes(index)) {
+                // خسارة
+                el.classList.add('bomb');
+                el.innerHTML = "💣";
+                gameOver(false);
+            } else {
+                // ربح
+                openedCount++;
+                multiplier += 0.4; // يزيد الربح مع كل صندوق
+                el.classList.add('win');
+                el.innerHTML = "💎";
+                
+                let currentWin = Math.floor(currentBet * multiplier);
+                document.getElementById('actionBtn').style.display = "inline-block";
+                document.getElementById('actionBtn').innerText = `سحب أرباحك (${currentWin})`;
+                document.getElementById('actionBtn').onclick = cashOut;
+            }
+        }
+
+        function cashOut() {
+            let winAmount = Math.floor(currentBet * multiplier);
+            db.ref('players_logs/'+pName).update({score: score + winAmount});
+            alert("مبروك! ربحت " + winAmount + " نقطة ✅");
+            resetUI();
+        }
+
+        function gameOver(win) {
+            isPlaying = false;
+            if(!win) {
+                alert("للأسف انفجر الصندوق! خسرت الرهان 💥");
+                // كشف باقي القنابل
+                const boxes = document.querySelectorAll('.box');
+                bombs.forEach(b => {
+                    boxes[b].classList.add('bomb');
+                    boxes[b].innerHTML = "💣";
+                });
+            }
+            setTimeout(resetUI, 2000);
+        }
+
+        function resetUI() {
+            isPlaying = false;
+            document.getElementById('actionBtn').innerText = "ابدأ اللعب 🎮";
+            document.getElementById('actionBtn').style.display = "inline-block";
+            document.getElementById('actionBtn').onclick = startGame;
+            document.getElementById('betBtns').style.opacity = "1";
+            document.getElementById('status').innerText = "اختر رهانك وابدأ اللعب";
+            createGrid();
+        }
+
+        createGrid(); // إنشاء الصناديق عند تحميل الصفحة
     </script>
 </body>
 </html>
