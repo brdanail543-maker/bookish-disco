@@ -3,163 +3,155 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منجم الذهب 🎁</title>
+    <title>حجر النرد الملكي 🎲</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding-bottom: 50px; }
-        .header { padding: 20px; background: #111; border-bottom: 2px solid #d4af37; margin-bottom: 20px; }
-        .balance-box { font-size: 24px; color: #d4af37; font-weight: 900; margin-bottom: 10px; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; overflow-x: hidden; }
         
-        /* شبكة الصناديق */
-        .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 350px; margin: 20px auto; padding: 10px; }
-        .box { width: 75px; height: 75px; background: #222; border: 2px solid #444; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 30px; cursor: pointer; transition: 0.3s; }
-        .box.open { background: #111; border-color: #d4af37; cursor: default; }
-        .box.bomb { background: #c0392b; }
-        .box.win { background: #27ae60; }
+        .top-bar { display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; align-items: center; }
+        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; font-size: 18px; }
+        .back-link { color: #d4af37; text-decoration: none; font-size: 14px; border: 1px solid #d4af37; padding: 4px 10px; border-radius: 5px; }
 
-        /* التحكم */
-        .controls { background: #0d0d0d; padding: 20px; position: fixed; bottom: 0; width: 100%; border-top: 1px solid #333; }
-        .bet-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; max-width: 400px; margin: 0 auto 15px; }
-        .btn-opt { background: #1a1a1a; border: 1px solid #444; color: #fff; padding: 10px; border-radius: 8px; cursor: pointer; }
-        .btn-opt.active { background: #d4af37; color: #000; font-weight: bold; }
-        .btn-play { background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; padding: 15px 50px; border-radius: 30px; border: none; font-size: 20px; font-weight: bold; cursor: pointer; width: 80%; }
-        .btn-cashout { background: #27ae60; color: #fff; display: none; }
-        
-        .back-link { position: absolute; top: 15px; right: 15px; color: #d4af37; text-decoration: none; border: 1px solid #d4af37; padding: 5px 10px; border-radius: 5px; }
+        .game-title { margin-top: 20px; font-size: 24px; color: #fff; }
+        .multiplier-info { color: #d4af37; font-size: 14px; margin-bottom: 20px; }
+
+        /* منطقة النرد */
+        .dice-area { height: 180px; display: flex; justify-content: center; align-items: center; margin: 20px 0; }
+        .dice { 
+            width: 100px; height: 100px; background: #fff; color: #000; 
+            font-size: 60px; display: flex; align-items: center; justify-content: center; 
+            border-radius: 20px; box-shadow: 0 0 30px #d4af37; 
+            transition: transform 0.1s; font-weight: 900;
+        }
+
+        /* أزرار اختيار الأرقام */
+        .num-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; max-width: 320px; margin: 0 auto 20px; }
+        .num-btn { 
+            background: #111; border: 2px solid #333; color: #fff; 
+            padding: 15px; border-radius: 15px; font-size: 22px; 
+            cursor: pointer; transition: 0.3s; font-weight: bold;
+        }
+        .num-btn.active { border-color: #d4af37; background: #d4af37; color: #000; transform: scale(1.05); }
+
+        /* خيارات الرهان */
+        .bet-select { background: #111; color: #fff; border: 1px solid #d4af37; padding: 10px; border-radius: 10px; width: 120px; font-size: 18px; margin-bottom: 20px; }
+
+        .play-btn { 
+            background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; 
+            width: 85%; max-width: 350px; padding: 18px; border-radius: 50px; 
+            font-size: 24px; font-weight: 900; border: none; cursor: pointer; 
+            box-shadow: 0 5px 15px rgba(212,175,55,0.4);
+        }
+        .play-btn:disabled { background: #333; color: #777; cursor: not-allowed; }
     </style>
 </head>
 <body>
 
-    <div class="header">
+    <audio id="sndRoll" src="https://www.soundjay.com/misc/sounds/dice-roll-1.mp3"></audio>
+    <audio id="sndWin" src="https://www.soundjay.com/human/sounds/applause-01.mp3"></audio>
+
+    <div class="top-bar">
+        <div class="balance-chip">💰 <span id="uBalance">0</span></div>
         <a href="index.html" class="back-link">🔙 رجوع</a>
-        <h1>صناديق الحظ 🎁</h1>
-        <div class="balance-box">💰 <span id="userBalance">0</span></div>
     </div>
 
-    <div id="status" style="color: #888;">اختر رهانك وابدأ اللعب</div>
-    
-    <div class="grid" id="gameGrid">
-        </div>
+    <div class="game-title">توقع رقم النرد 🎲</div>
+    <div class="multiplier-info">اربح 5 أضعاف رهانك عند التوقع الصحيح!</div>
 
-    <div class="controls">
-        <div class="bet-btns" id="betBtns">
-            <div class="btn-opt" onclick="setBet(50, this)">50</div>
-            <div class="btn-opt active" onclick="setBet(100, this)">100</div>
-            <div class="btn-opt" onclick="setBet(500, this)">500</div>
-        </div>
-        <button class="btn-play" id="actionBtn" onclick="startGame()">ابدأ اللعب 🎮</button>
+    <div class="dice-area">
+        <div id="diceDisplay" class="dice">?</div>
     </div>
+
+    <div class="num-grid">
+        <div class="num-btn" onclick="selectNumber(1, this)">1</div>
+        <div class="num-btn" onclick="selectNumber(2, this)">2</div>
+        <div class="num-btn" onclick="selectNumber(3, this)">3</div>
+        <div class="num-btn" onclick="selectNumber(4, this)">4</div>
+        <div class="num-btn" onclick="selectNumber(5, this)">5</div>
+        <div class="num-btn" onclick="selectNumber(6, this)">6</div>
+    </div>
+
+    <div>
+        <span style="color: #888;">مبلغ الرهان:</span><br>
+        <select id="betVal" class="bet-select">
+            <option value="100">100</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="5000">5000</option>
+        </select>
+    </div>
+
+    <button class="play-btn" id="rollBtn" onclick="playDice()">إرمِ النرد 🎲</button>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let pName = localStorage.getItem('pName');
-        let score = 0, currentBet = 100, isPlaying = false, multiplier = 1.0, openedCount = 0;
-        let bombs = [];
+        let score = 0, selectedNum = 0, isRolling = false;
 
         if(!pName) window.location.href="index.html";
 
-        // التزامن مع الحساب الموحد
+        // مزامنة الرصيد
         db.ref('players_logs/' + pName).on('value', s => {
-            if(s.exists()){ score = s.val().score; document.getElementById('userBalance').innerText = score; }
+            if(s.exists()){ score = s.val().score; document.getElementById('uBalance').innerText = score; }
         });
 
-        function setBet(amt, el) {
-            if(isPlaying) return;
-            currentBet = amt;
-            document.querySelectorAll('.btn-opt').forEach(b => b.classList.remove('active'));
+        function selectNumber(num, el) {
+            if(isRolling) return;
+            selectedNum = num;
+            document.querySelectorAll('.num-btn').forEach(b => b.classList.remove('active'));
             el.classList.add('active');
         }
 
-        function createGrid() {
-            const grid = document.getElementById('gameGrid');
-            grid.innerHTML = "";
-            for(let i=0; i<16; i++) {
-                let box = document.createElement('div');
-                box.className = "box";
-                box.innerHTML = "📦";
-                box.onclick = () => openBox(i, box);
-                grid.appendChild(box);
-            }
-        }
+        function playDice() {
+            let bet = parseInt(document.getElementById('betVal').value);
+            if (selectedNum === 0) return alert("الرجاء اختيار رقم أولاً!");
+            if (score < bet) return alert("رصيدك لا يكفي!");
+            if (isRolling) return;
 
-        function startGame() {
-            if(score < currentBet) return alert("رصيدك لا يكفي!");
-            isPlaying = true; openedCount = 0; multiplier = 1.0;
-            db.ref('players_logs/'+pName).update({score: score - currentBet});
+            isRolling = true;
+            document.getElementById('rollBtn').disabled = true;
+            document.getElementById('sndRoll').play();
+
+            // خصم الرهان
+            db.ref('players_logs/' + pName).update({ score: score - bet });
+
+            let diceEl = document.getElementById('diceDisplay');
+            let counter = 0;
             
-            // توزيع 3 قنابل عشوائية
-            bombs = [];
-            while(bombs.length < 3) {
-                let r = Math.floor(Math.random() * 16);
-                if(!bombs.includes(r)) bombs.push(r);
-            }
+            // أنيميشن التدحرج
+            let interval = setInterval(() => {
+                let tempNum = Math.floor(Math.random() * 6) + 1;
+                diceEl.innerText = tempNum;
+                diceEl.style.transform = `rotate(${Math.random() * 20 - 10}deg) scale(1.1)`;
+                counter++;
 
-            createGrid();
-            document.getElementById('actionBtn').innerText = "سحب الأرباح (0)";
-            document.getElementById('actionBtn').style.display = "none";
-            document.getElementById('betBtns').style.opacity = "0.3";
-            document.getElementById('status').innerText = "احذر من القنابل! افتح الصناديق...";
+                if (counter > 15) {
+                    clearInterval(interval);
+                    let finalNum = Math.floor(Math.random() * 6) + 1;
+                    diceEl.innerText = finalNum;
+                    diceEl.style.transform = `rotate(0deg) scale(1)`;
+                    finishGame(finalNum, bet);
+                }
+            }, 80);
         }
 
-        function openBox(index, el) {
-            if(!isPlaying || el.classList.contains('open')) return;
+        function finishGame(result, bet) {
+            isRolling = false;
+            document.getElementById('rollBtn').disabled = false;
 
-            el.classList.add('open');
-            if(bombs.includes(index)) {
-                // خسارة
-                el.classList.add('bomb');
-                el.innerHTML = "💣";
-                gameOver(false);
+            if (result === selectedNum) {
+                let winAmount = bet * 5;
+                db.ref('players_logs/' + pName).update({ score: score + winAmount });
+                document.getElementById('sndWin').play();
+                alert(`🎊 مبروك! ظهر الرقم ${result}. ربحت ${winAmount} نقطة!`);
             } else {
-                // ربح
-                openedCount++;
-                multiplier += 0.4; // يزيد الربح مع كل صندوق
-                el.classList.add('win');
-                el.innerHTML = "💎";
-                
-                let currentWin = Math.floor(currentBet * multiplier);
-                document.getElementById('actionBtn').style.display = "inline-block";
-                document.getElementById('actionBtn').innerText = `سحب أرباحك (${currentWin})`;
-                document.getElementById('actionBtn').onclick = cashOut;
+                alert(`❌ حظ أوفر! الرقم كان ${result}.`);
             }
         }
-
-        function cashOut() {
-            let winAmount = Math.floor(currentBet * multiplier);
-            db.ref('players_logs/'+pName).update({score: score + winAmount});
-            alert("مبروك! ربحت " + winAmount + " نقطة ✅");
-            resetUI();
-        }
-
-        function gameOver(win) {
-            isPlaying = false;
-            if(!win) {
-                alert("للأسف انفجر الصندوق! خسرت الرهان 💥");
-                // كشف باقي القنابل
-                const boxes = document.querySelectorAll('.box');
-                bombs.forEach(b => {
-                    boxes[b].classList.add('bomb');
-                    boxes[b].innerHTML = "💣";
-                });
-            }
-            setTimeout(resetUI, 2000);
-        }
-
-        function resetUI() {
-            isPlaying = false;
-            document.getElementById('actionBtn').innerText = "ابدأ اللعب 🎮";
-            document.getElementById('actionBtn').style.display = "inline-block";
-            document.getElementById('actionBtn').onclick = startGame;
-            document.getElementById('betBtns').style.opacity = "1";
-            document.getElementById('status').innerText = "اختر رهانك وابدأ اللعب";
-            createGrid();
-        }
-
-        createGrid(); // إنشاء الصناديق عند تحميل الصفحة
     </script>
 </body>
 </html>
