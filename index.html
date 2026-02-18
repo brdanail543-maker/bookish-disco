@@ -3,109 +3,68 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الملوك 👑</title>
+    <title>منصة الألعاب الملكية 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root { --gold: #d4af37; --dark: #0a0a0a; }
-        body { background-color: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
-        
-        /* شريط الرصيد العلوي الثابت */
-        .top-bar { 
-            background: #111; padding: 15px; border-bottom: 2px solid var(--gold); 
-            position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-around; 
-            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
-        }
-        .info-item { color: var(--gold); font-size: 18px; font-weight: bold; }
-        .info-item span { color: #fff; }
-
-        .container { padding: 20px; max-width: 1000px; margin: auto; text-align: center; }
-        h1 { color: var(--gold); margin: 20px 0; font-size: 28px; }
-
-        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
-        
-        .game-card {
-            background: #111; border: 1px solid #333; border-radius: 20px; padding: 25px;
-            transition: 0.3s; cursor: pointer; position: relative;
-        }
-        .game-card:hover { border-color: var(--gold); transform: translateY(-5px); }
-        .game-card img { width: 90px; height: 90px; margin-bottom: 15px; }
-        .game-card h3 { color: var(--gold); margin-bottom: 10px; }
-        .btn-play { background: var(--gold); color: #000; border: none; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
-
-        .new-tag { position: absolute; top: 10px; left: 10px; background: red; color: #fff; padding: 2px 10px; border-radius: 5px; font-size: 12px; animation: flash 1s infinite; }
-        @keyframes flash { 50% { opacity: 0.5; } }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; }
+        .header { padding: 30px; background: linear-gradient(to bottom, #111, #000); border-bottom: 2px solid #d4af37; }
+        .user-info { background: #1a1a1a; padding: 15px; margin: 20px auto; width: 80%; border-radius: 15px; border: 1px solid #d4af37; }
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .game-card { background: #111; padding: 20px; border-radius: 20px; border: 1px solid #333; text-decoration: none; color: #fff; transition: 0.3s; }
+        .game-card:hover { transform: scale(1.05); border-color: #d4af37; }
+        .game-card h2 { margin: 10px 0 0 0; font-size: 18px; }
+        .game-icon { font-size: 40px; }
     </style>
 </head>
 <body>
-
-    <div class="top-bar">
-        <div class="info-item">👤 <span id="userNameDisplay">...</span></div>
-        <div class="info-item">💰 <span id="userBalanceDisplay">0</span></div>
+    <div class="header">
+        <h1>منصة الملوك 🏆</h1>
     </div>
 
-    <div class="container">
-        <h1>كازينو الملوك للألعاب 🎰</h1>
+    <div class="user-info">
+        <div>مرحباً: <span id="userNameDisplay" style="color:#d4af37">...</span></div>
+        <div style="font-size: 24px; font-weight: 900;">💰 رصيدك: <span id="userBalanceDisplay">0</span></div>
+    </div>
 
-        <div class="games-grid">
-            <div class="game-card" onclick="location.href='plane.html'">
-                <div class="new-tag">جديد 🔥</div>
-                <img src="https://files.catbox.moe/5m9k90.png" alt="الطائرة">
-                <h3>رحلة الثراء 🚀</h3>
-                <p style="color:#888; font-size:14px;">ضاعف رصيدك قبل الانفجار!</p>
-                <button class="btn-play">إلعب الآن</button>
-            </div>
-
-            <div class="game-card" onclick="location.href='wheel.html'">
-                <img src="https://cdn-icons-png.flaticon.com/512/3593/3593514.png" alt="العجلة">
-                <h3>عجلة الحظ 🎡</h3>
-                <p style="color:#888; font-size:14px;">جرب حظك واربح الجوائز.</p>
-                <button class="btn-play">إلعب الآن</button>
-            </div>
-        </div>
+    <div class="games-grid">
+        <a href="plane.html" class="game-card">
+            <div class="game-icon">🚀</div>
+            <h2>لعبة الطائرة</h2>
+        </a>
+        <a href="wheel.html" class="game-card">
+            <div class="game-icon">🎡</div>
+            <h2>عجلة الحظ</h2>
+        </a>
+        <a href="boxes.html" class="game-card">
+            <div class="game-icon">🎁</div>
+            <h2>الصناديق</h2>
+        </a>
     </div>
 
     <script>
-        // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // تشغيل نظام تعريف اللاعب عند فتح الصفحة
-        window.onload = function() {
-            let pName = localStorage.getItem('pName');
+        let pName = localStorage.getItem('pName');
+        if (!pName) {
+            pName = prompt("ادخل اسمك لفتح حسابك الموحد:");
+            if (!pName) pName = "لاعب_" + Math.floor(Math.random()*999);
+            localStorage.setItem('pName', pName);
+        }
+        document.getElementById('userNameDisplay').innerText = pName;
 
-            // إذا لم يوجد اسم، نطلبه من اللاعب
-            if (!pName) {
-                pName = prompt("مرحباً بك! يرجى إدخال اسمك لبدء اللعب:");
-                if (!pName || pName.trim() === "") {
-                    pName = "لاعب_" + Math.floor(Math.random() * 9999);
-                }
-                localStorage.setItem('pName', pName);
+        const userRef = db.ref('players_logs/' + pName);
+        userRef.on('value', (snapshot) => {
+            if (!snapshot.exists()) {
+                userRef.set({ score: 500 });
+            } else {
+                document.getElementById('userBalanceDisplay').innerText = snapshot.val().score;
             }
-
-            document.getElementById('userNameDisplay').innerText = pName;
-
-            // ربط الرصيد بـ Firebase
-            const userRef = db.ref('players_logs/' + pName);
-            userRef.on('value', (snapshot) => {
-                const data = snapshot.val();
-                if (data) {
-                    document.getElementById('userBalanceDisplay').innerText = data.score;
-                } else {
-                    // إذا كان لاعب جديد، نعطيه 500 نقطة هدية
-                    userRef.set({ score: 500 });
-                }
-            });
-        };
+        });
     </script>
 </body>
 </html>
 
-<div class="game-card" onclick="location.href='boxes.html'">
-    <img src="https://cdn-icons-png.flaticon.com/512/2852/2852131.png" alt="الصناديق">
-    <h3>صناديق الكنز 🎁</h3>
-    <p style="color:#888; font-size:14px;">اختر الصندوق الرابح واكسب فوراً!</p>
-    <button class="btn-play">إلعب الآن</button>
-</div>
