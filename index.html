@@ -8,26 +8,48 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; }
-        .header { padding: 30px; background: linear-gradient(to bottom, #111, #000); border-bottom: 2px solid #d4af37; }
-        .user-card { background: #1a1a1a; padding: 20px; margin: 20px auto; width: 85%; border-radius: 20px; border: 1px solid #d4af37; box-shadow: 0 0 15px rgba(212,175,55,0.2); }
-        .balance { font-size: 35px; font-weight: 900; color: #d4af37; margin: 10px 0; }
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .game-card { background: #111; padding: 25px; border-radius: 20px; border: 1px solid #333; text-decoration: none; color: #fff; transition: 0.3s; display: block; }
-        .game-card:hover { border-color: #d4af37; transform: translateY(-5px); }
-        .icon { font-size: 45px; display: block; margin-bottom: 10px; }
+        body { background-color: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; text-align: center; }
+        h1 { font-size: 28px; margin-bottom: 30px; }
+        .user-card { 
+            background: #111; border: 2px solid #d4af37; border-radius: 15px; 
+            padding: 20px; margin-bottom: 30px; position: relative;
+        }
+        .user-name { color: #d4af37; font-size: 18px; margin-bottom: 10px; }
+        .balance-text { font-size: 26px; font-weight: 900; }
+        .balance-val { color: #fff; }
+        
+        .games-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .game-item { 
+            background: #111; border-radius: 20px; padding: 20px; 
+            text-decoration: none; color: #fff; border: 1px solid #333;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .game-item img { width: 60px; height: 60px; margin-bottom: 10px; }
+        .game-item span { font-size: 16px; font-weight: bold; }
+        .full-width { grid-column: span 2; }
     </style>
 </head>
 <body>
-    <div class="header"><h1>مرحباً بك في المنصة 👑</h1></div>
+    <h1>🏆 منصة الملوك</h1>
+
     <div class="user-card">
-        <div style="font-size: 18px;">اللاعب: <span id="uName" style="color:#d4af37">جاري التحميل...</span></div>
-        <div class="balance" id="uBalance">0</div>
-        <div style="font-size: 14px; color: #888;">رصيدك الموحد عبر كل الألعاب</div>
+        <div class="user-name">مرحباً: <span id="displayPName">...</span></div>
+        <div class="balance-text">رصيدك: <span class="balance-val" id="displayBalance">0</span> 💰</div>
     </div>
-    <div class="games-grid">
-        <a href="plane.html" class="game-card"><span class="icon">🚀</span><span>الطائرة</span></a>
-        <a href="wheel.html" class="game-card"><span class="icon">🎡</span><span>العجلة</span></a>
+
+    <div class="games-container">
+        <a href="wheel.html" class="game-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png" alt="wheel">
+            <span>عجلة الحظ</span>
+        </a>
+        <a href="plane.html" class="game-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png" alt="plane">
+            <span>لعبة الطائرة</span>
+        </a>
+        <a href="boxes.html" class="game-item full-width">
+            <img src="https://cdn-icons-png.flaticon.com/512/4213/4213958.png" alt="boxes">
+            <span>الصناديق</span>
+        </a>
     </div>
 
     <script>
@@ -37,16 +59,17 @@
 
         let pName = localStorage.getItem('pName');
         if (!pName) {
-            pName = prompt("ادخل اسمك لبدء اللعب:");
+            pName = prompt("ادخل اسمك:");
             if (!pName) pName = "لاعب" + Math.floor(Math.random()*999);
             localStorage.setItem('pName', pName);
         }
-        document.getElementById('uName').innerText = pName;
+        document.getElementById('displayPName').innerText = pName;
 
         db.ref('players_logs/' + pName).on('value', (s) => {
             if (!s.exists()) { db.ref('players_logs/' + pName).set({ score: 500 }); }
-            else { document.getElementById('uBalance').innerText = s.val().score; }
+            else { document.getElementById('displayBalance').innerText = s.val().score; }
         });
     </script>
 </body>
 </html>
+
