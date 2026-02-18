@@ -8,41 +8,41 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        
         * { box-sizing: border-box; }
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; overflow: hidden; touch-action: manipulation; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; overflow: hidden; }
         
-        /* الهيدر */
-        .header { display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; align-items: center; height: 60px; }
-        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; }
+        .header { display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; align-items: center; height: 70px; }
+        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 8px 20px; border-radius: 12px; color: #d4af37; font-weight: 900; font-size: 18px; }
 
         /* منطقة اللعب */
-        .game-area { height: 55vh; position: relative; background: radial-gradient(circle, #1a1a1a, #000); overflow: hidden; border-bottom: 1px solid #333; }
-        .multiplier { font-size: 65px; font-weight: 900; color: #fff; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 5; }
+        .game-area { height: 50vh; position: relative; background: #0a0a0a; border-bottom: 1px solid #333; overflow: hidden; }
+        .multiplier { font-size: 70px; font-weight: 900; color: #fff; position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%); z-index: 5; text-shadow: 0 0 20px rgba(255,255,255,0.3); }
         
-        /* تصميم الطائرة باستخدام SVG لضمان الظهور */
-        #planeContainer { 
-            width: 80px; height: 50px; position: absolute; bottom: 20%; left: 10%; 
-            display: none; z-index: 10; transition: transform 0.1s linear; 
+        /* تصميم الطائرة SVG لضمان الظهور */
+        #planeIcon { 
+            width: 80px; position: absolute; bottom: 20%; left: 10%; 
+            display: none; z-index: 10; fill: #d4af37; filter: drop-shadow(0 0 10px #d4af37);
         }
 
-        #explosion { 
-            font-size: 50px; position: absolute; display: none; z-index: 11; 
-            transform: translate(-50%, -50%); 
-        }
-
-        /* التحكم */
-        .controls { height: calc(45vh - 60px); background: #0d0d0d; padding: 15px; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .bet-input-container { width: 100%; max-width: 300px; margin-bottom: 10px; }
-        .bet-input { background: #1a1a1a; border: 2px solid #444; color: #fff; padding: 12px; width: 100%; border-radius: 12px; font-size: 20px; text-align: center; font-weight: bold; }
+        /* منطقة التحكم والمراهنة */
+        .controls { height: calc(50vh - 70px); background: #0d0d0d; padding: 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 15px; }
         
-        .main-btn { 
-            background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; 
-            width: 100%; max-width: 300px; padding: 18px; border-radius: 50px; 
-            font-size: 22px; font-weight: 900; border: none; cursor: pointer; 
+        .bet-box { width: 100%; max-width: 320px; }
+        .bet-input { 
+            background: #1a1a1a; border: 2px solid #333; color: #fff; padding: 15px; 
+            width: 100%; border-radius: 15px; font-size: 22px; text-align: center; 
+            font-weight: bold; margin-bottom: 10px; outline: none;
+        }
+        .bet-input:focus { border-color: #d4af37; }
+
+        .action-btn { 
+            background: linear-gradient(180deg, #d4af37, #b8860b); color: #000; 
+            width: 100%; max-width: 320px; padding: 20px; border-radius: 50px; 
+            font-size: 24px; font-weight: 900; border: none; cursor: pointer; transition: 0.2s;
         }
         .btn-cashout { background: linear-gradient(180deg, #27ae60, #1e8449) !important; color: #fff !important; }
-        .status-msg { color: #d4af37; font-size: 14px; margin-top: 5px; height: 20px; }
+        
+        .status { color: #888; font-size: 14px; }
     </style>
 </head>
 <body>
@@ -55,21 +55,19 @@
     <div class="game-area">
         <div class="multiplier" id="multiDisplay">1.00x</div>
         
-        <div id="planeContainer">
-            <svg viewBox="0 0 512 512" fill="#d4af37">
-                <path d="M448 336v-40L288 192V72c0-22.09-17.91-40-40-40s-40 17.91-40 40v120L48 296v40l160-48v112l-48 36v28l88-24 88 24v-28l-48-36V288l160 48z"/>
-            </svg>
-        </div>
+        <svg id="planeIcon" viewBox="0 0 512 512">
+            <path d="M448 336v-40L288 192V72c0-22.09-17.91-40-40-40s-40 17.91-40 40v120L48 296v40l160-48v112l-48 36v28l88-24 88 24v-28l-48-36V288l160 48z"/>
+        </svg>
 
-        <div id="explosion">💥</div>
+        <div id="explosion" style="position:absolute; display:none; font-size:50px; transform:translate(-50%,-50%); z-index:11;">💥</div>
     </div>
 
     <div class="controls">
-        <div class="bet-input-container">
-            <input type="number" id="betAmt" class="bet-input" value="100">
+        <div class="bet-box">
+            <input type="number" id="betAmt" class="bet-input" value="100" placeholder="مبلغ الرهان">
         </div>
-        <button id="mainBtn" class="main-btn" onclick="handleAction()">إقلاع 🛫</button>
-        <div id="status" class="status-msg">جاهز للإقلاع...</div>
+        <button id="mainBtn" class="action-btn" onclick="togglePlay()">إقلاع 🛫</button>
+        <div id="statusMsg" class="status">حدد رهانك ثم اضغط إقلاع</div>
     </div>
 
     <script>
@@ -83,40 +81,40 @@
             if(s.exists()){ score = s.val().score; document.getElementById('uBal').innerText = score; }
         });
 
-        function handleAction() {
-            if (!isFlying) startGame(); else cashOut();
+        function togglePlay() {
+            if (!isFlying) startFlight(); else cashOut();
         }
 
-        function startGame() {
+        function startFlight() {
             currentBet = parseInt(document.getElementById('betAmt').value);
-            if (isNaN(currentBet) || currentBet <= 0 || score < currentBet) return alert("خطأ في الرصيد أو المبلغ!");
+            if (isNaN(currentBet) || currentBet <= 0 || score < currentBet) return alert("الرصيد غير كافٍ أو المبلغ خاطئ!");
 
             db.ref('players_logs/' + pName).update({ score: score - currentBet });
             isFlying = true; multi = 1.0;
             
             document.getElementById('mainBtn').innerText = "سحب 💰";
             document.getElementById('mainBtn').classList.add('btn-cashout');
-            document.getElementById('planeContainer').style.display = "block";
+            document.getElementById('planeIcon').style.display = "block";
             document.getElementById('explosion').style.display = "none";
-            document.getElementById('multiDisplay').style.color = "#fff";
+            document.getElementById('statusMsg').innerText = "اسحب قبل الانفجار!";
 
-            // تحديد نقطة الانفجار (تعديل لتقليل الأرباح)
+            // معادلة الانفجار (توازن الموقع)
             let chance = Math.random() * 100;
-            let crashPoint = (chance < 40) ? (1.0 + Math.random() * 0.4) : 
-                             (chance < 90) ? (1.4 + Math.random() * 2.0) : 
-                                             (3.5 + Math.random() * 4.0);
+            let crashPoint = (chance < 35) ? (1.0 + Math.random() * 0.4) : 
+                             (chance < 85) ? (1.4 + Math.random() * 1.8) : 
+                                             (3.2 + Math.random() * 4.0);
 
             timer = setInterval(() => {
                 multi += 0.01;
                 document.getElementById('multiDisplay').innerText = multi.toFixed(2) + "x";
                 
-                // تحريك الطائرة للأعلى ولليمين
-                let x = (multi - 1) * 50;
-                let y = (multi - 1) * 70;
-                document.getElementById('planeContainer').style.transform = `translate(${x}px, -${y}px) rotate(-45deg)`;
+                // حركة الطائرة
+                let x = (multi - 1) * 60;
+                let y = (multi - 1) * 50;
+                document.getElementById('planeIcon').style.transform = `translate(${x}px, -${y}px) rotate(-45deg)`;
 
-                if (multi >= crashPoint) explode();
-            }, 60);
+                if (multi >= crashPoint) doCrash();
+            }, 65);
         }
 
         function cashOut() {
@@ -124,14 +122,14 @@
             clearInterval(timer);
             let win = Math.floor(currentBet * multi);
             db.ref('players_logs/' + pName).update({ score: score + win });
-            alert("تم السحب بنجاح! ربحت " + win);
-            resetUI();
+            alert(`🎉 ربحت ${win} نقطة!`);
+            resetGame();
         }
 
-        function explode() {
+        function doCrash() {
             clearInterval(timer);
             isFlying = false;
-            const plane = document.getElementById('planeContainer');
+            const plane = document.getElementById('planeIcon');
             const exp = document.getElementById('explosion');
             
             exp.style.left = (plane.offsetLeft + 40) + "px";
@@ -140,19 +138,20 @@
             
             plane.style.display = "none";
             document.getElementById('multiDisplay').style.color = "#ff4444";
-            document.getElementById('status').innerText = "💥 تحطمت الطائرة!";
-            setTimeout(resetUI, 2000);
+            document.getElementById('statusMsg').innerText = "💥 تحطمت الطائرة!";
+            setTimeout(resetGame, 2000);
         }
 
-        function resetUI() {
+        function resetGame() {
             clearInterval(timer);
             isFlying = false;
             document.getElementById('mainBtn').innerText = "إقلاع 🛫";
             document.getElementById('mainBtn').classList.remove('btn-cashout');
-            document.getElementById('planeContainer').style.display = "none";
-            document.getElementById('planeContainer').style.transform = "none";
+            document.getElementById('planeIcon').style.display = "none";
+            document.getElementById('planeIcon').style.transform = "none";
             document.getElementById('explosion').style.display = "none";
             document.getElementById('multiDisplay').innerText = "1.00x";
+            document.getElementById('multiDisplay').style.color = "#fff";
         }
     </script>
 </body>
