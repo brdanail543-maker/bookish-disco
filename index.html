@@ -3,136 +3,102 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الألعاب الملكية 👑</title>
+    <title>منصة الملوك 👑</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --gold: #d4af37;
-            --dark: #0a0a0a;
-        }
-        body {
-            background-color: #000;
-            color: #fff;
-            font-family: 'Cairo', sans-serif;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        header {
-            width: 100%;
-            padding: 30px 0;
-            text-align: center;
-            background: linear-gradient(to bottom, #111, #000);
-            border-bottom: 2px solid var(--gold);
-            margin-bottom: 40px;
-        }
-        h1 { margin: 0; font-size: 32px; color: var(--gold); text-shadow: 0 0 10px rgba(212, 175, 55, 0.5); }
+        :root { --gold: #d4af37; --dark: #0a0a0a; }
+        body { background-color: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
         
-        .container {
-            width: 90%;
-            max-width: 1000px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 25px;
-            padding-bottom: 50px;
+        /* شريط الرصيد العلوي الثابت */
+        .top-bar { 
+            background: #111; padding: 15px; border-bottom: 2px solid var(--gold); 
+            position: sticky; top: 0; z-index: 100; display: flex; justify-content: space-around; 
+            box-shadow: 0 5px 15px rgba(212, 175, 55, 0.2);
         }
+        .info-item { color: var(--gold); font-size: 18px; font-weight: bold; }
+        .info-item span { color: #fff; }
 
+        .container { padding: 20px; max-width: 1000px; margin: auto; text-align: center; }
+        h1 { color: var(--gold); margin: 20px 0; font-size: 28px; }
+
+        .games-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+        
         .game-card {
-            background: #111;
-            border: 1px solid #333;
-            border-radius: 20px;
-            padding: 25px;
-            text-align: center;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            position: relative;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            background: #111; border: 1px solid #333; border-radius: 20px; padding: 25px;
+            transition: 0.3s; cursor: pointer; position: relative;
         }
+        .game-card:hover { border-color: var(--gold); transform: translateY(-5px); }
+        .game-card img { width: 90px; height: 90px; margin-bottom: 15px; }
+        .game-card h3 { color: var(--gold); margin-bottom: 10px; }
+        .btn-play { background: var(--gold); color: #000; border: none; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; }
 
-        .game-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-10px);
-            box-shadow: 0 10px 25px rgba(212, 175, 55, 0.2);
-        }
-
-        .game-card img {
-            width: 90px;
-            height: 90px;
-            margin-bottom: 15px;
-            filter: drop-shadow(0 0 5px rgba(212, 175, 55, 0.3));
-        }
-
-        .game-card h3 { color: var(--gold); margin: 10px 0; font-size: 22px; }
-        .game-card p { color: #aaa; font-size: 14px; margin-bottom: 20px; }
-
-        .btn-play {
-            background: linear-gradient(180deg, var(--gold), #8a6d3b);
-            color: #000;
-            border: none;
-            padding: 10px 30px;
-            border-radius: 10px;
-            font-weight: bold;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        .new-badge {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            background: #ff0000;
-            color: #fff;
-            padding: 2px 10px;
-            border-radius: 5px;
-            font-size: 12px;
-            font-weight: bold;
-            animation: pulse 1s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.1); opacity: 0.8; }
-            100% { transform: scale(1); }
-        }
+        .new-tag { position: absolute; top: 10px; left: 10px; background: red; color: #fff; padding: 2px 10px; border-radius: 5px; font-size: 12px; animation: flash 1s infinite; }
+        @keyframes flash { 50% { opacity: 0.5; } }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1>كازينو الملوك 🎰</h1>
-        <p style="color: #888;">مرحباً بك في عالم الحظ والثراء</p>
-    </header>
+    <div class="top-bar">
+        <div class="info-item">👤 <span id="userNameDisplay">...</span></div>
+        <div class="info-item">💰 <span id="userBalanceDisplay">0</span></div>
+    </div>
 
     <div class="container">
-        <div class="game-card" onclick="location.href='plane.html'">
-            <div class="new-badge">جديد 🔥</div>
-            <img src="https://files.catbox.moe/5m9k90.png" alt="الطائرة">
-            <h3>رحلة الثراء 🚀</h3>
-            <p>ضاعف رصيدك في السماء، لكن اسحب قبل الانفجار!</p>
-            <button class="btn-play">إلعب الآن</button>
-        </div>
+        <h1>كازينو الملوك للألعاب 🎰</h1>
 
-        <div class="game-card" onclick="location.href='wheel.html'">
-            <img src="https://cdn-icons-png.flaticon.com/512/3593/3593514.png" alt="العجلة">
-            <h3>عجلة الحظ 🎡</h3>
-            <p>أدر العجلة الذهبية واكسب جوائز فورية كل يوم.</p>
-            <button class="btn-play">إلعب الآن</button>
-        </div>
+        <div class="games-grid">
+            <div class="game-card" onclick="location.href='plane.html'">
+                <div class="new-tag">جديد 🔥</div>
+                <img src="https://files.catbox.moe/5m9k90.png" alt="الطائرة">
+                <h3>رحلة الثراء 🚀</h3>
+                <p style="color:#888; font-size:14px;">ضاعف رصيدك قبل الانفجار!</p>
+                <button class="btn-play">إلعب الآن</button>
+            </div>
 
-        <div class="game-card" onclick="location.href='boxes.html'">
-            <img src="https://cdn-icons-png.flaticon.com/512/2852/2852131.png" alt="الصناديق">
-            <h3>صناديق الكنز 🎁</h3>
-            <p>اختر الصندوق الرابح من بين الصناديق الغامضة.</p>
-            <button class="btn-play">إلعب الآن</button>
+            <div class="game-card" onclick="location.href='wheel.html'">
+                <img src="https://cdn-icons-png.flaticon.com/512/3593/3593514.png" alt="العجلة">
+                <h3>عجلة الحظ 🎡</h3>
+                <p style="color:#888; font-size:14px;">جرب حظك واربح الجوائز.</p>
+                <button class="btn-play">إلعب الآن</button>
+            </div>
         </div>
     </div>
 
-    <footer style="margin-top: 50px; color: #444; font-size: 12px;">
-        جميع الحقوق محفوظة لمنصة ألعابك الملكية © 2026
-    </footer>
+    <script>
+        // إعدادات Firebase
+        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
+        // تشغيل نظام تعريف اللاعب عند فتح الصفحة
+        window.onload = function() {
+            let pName = localStorage.getItem('pName');
+
+            // إذا لم يوجد اسم، نطلبه من اللاعب
+            if (!pName) {
+                pName = prompt("مرحباً بك! يرجى إدخال اسمك لبدء اللعب:");
+                if (!pName || pName.trim() === "") {
+                    pName = "لاعب_" + Math.floor(Math.random() * 9999);
+                }
+                localStorage.setItem('pName', pName);
+            }
+
+            document.getElementById('userNameDisplay').innerText = pName;
+
+            // ربط الرصيد بـ Firebase
+            const userRef = db.ref('players_logs/' + pName);
+            userRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+                if (data) {
+                    document.getElementById('userBalanceDisplay').innerText = data.score;
+                } else {
+                    // إذا كان لاعب جديد، نعطيه 500 نقطة هدية
+                    userRef.set({ score: 500 });
+                }
+            });
+        };
+    </script>
 </body>
 </html>
-
