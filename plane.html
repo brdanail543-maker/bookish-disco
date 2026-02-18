@@ -3,143 +3,124 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>رحلة الثراء الملكية 🚀</title>
+    <title>رحلة الثراء 🚀</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; overflow: hidden; margin: 0; }
-        .game-area { height: 60vh; position: relative; background: radial-gradient(circle at center, #1a1a1a, #000); overflow: hidden; border-bottom: 3px solid #d4af37; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; overflow: hidden; }
         
+        /* منطقة الطيران */
+        .game-area { height: 65vh; position: relative; background: radial-gradient(circle at bottom, #1a1a1a, #000); overflow: hidden; border-bottom: 3px solid #d4af37; }
+        
+        /* صورة الطائرة - تأكد من هذا المسار */
         #plane { 
-            position: absolute; bottom: 50px; left: 10%; width: 110px; 
-            filter: drop-shadow(0 0 15px #00f3ff); z-index: 10;
+            position: absolute; bottom: 50px; left: 15%; width: 120px; 
+            filter: drop-shadow(0 0 15px #d4af37); z-index: 10; 
+            transition: transform 0.1s linear;
         }
 
-        .multiplier { font-size: 80px; margin-top: 30px; color: #d4af37; font-weight: 900; text-shadow: 0 0 30px rgba(212, 175, 55, 0.6); transition: 0.1s; }
-        .controls { padding: 25px; background: #0a0a0a; height: 40vh; box-shadow: 0 -10px 30px rgba(0,0,0,0.8); }
+        .multiplier { font-size: 70px; padding-top: 50px; color: #d4af37; font-weight: 900; }
         
-        .bet-input { background: #111; border: 2px solid #333; color: #fff; padding: 12px; border-radius: 12px; width: 120px; text-align: center; font-size: 20px; outline: none; border-color: #d4af37; }
-        
-        .btn-bet { 
-            background: linear-gradient(180deg, #d4af37, #b8860b); color: #000; padding: 18px; border-radius: 15px; 
-            font-size: 24px; font-weight: bold; border: none; cursor: pointer; width: 90%; margin-top: 15px;
-            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.4); transition: 0.2s;
+        .controls { padding: 20px; background: #0a0a0a; height: 35vh; }
+        .btn { 
+            background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; 
+            padding: 20px; border-radius: 15px; font-size: 24px; font-weight: bold; 
+            border: none; cursor: pointer; width: 90%; max-width: 400px;
         }
-        .btn-bet:active { transform: scale(0.95); }
-        .cashout { background: linear-gradient(180deg, #27ae60, #1e8449) !important; color: white !important; }
-
-        /* تأثير الانفجار */
-        .explosion { position: absolute; width: 150px; display: none; transform: translate(-50%, -50%); z-index: 20; }
+        .btn-cashout { background: linear-gradient(180deg, #27ae60, #1e8449); color: #fff; }
+        
+        #explosion { position: absolute; width: 150px; display: none; z-index: 20; }
+        .back-home { position: absolute; top: 10px; right: 10px; color: #d4af37; text-decoration: none; font-size: 14px; border: 1px solid #d4af37; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
 
     <div class="game-area">
+        <a href="index.html" class="back-home">⬅ خروج للمنصة</a>
         <div id="multi" class="multiplier">1.00x</div>
-        <img id="plane" src="https://files.catbox.moe/5m9k90.png" alt="الطائرة">
-        <img id="exp" class="explosion" src="https://i.gifer.com/696.gif" alt="انفجار">
+        <img id="plane" src="https://files.catbox.moe/5m9k90.png" alt="plane">
+        <img id="explosion" src="https://i.gifer.com/696.gif">
     </div>
 
     <div class="controls">
-        <div style="color: #d4af37; margin-bottom: 10px;">رصيدك: <span id="userScore">0</span> 💰</div>
-        <input type="number" id="betAmount" class="bet-input" value="100">
-        <button class="btn-bet" id="mainBtn" onclick="handleGame()">إقلاع 🛫</button>
-        <p id="status" style="color: #666; font-size: 14px; margin-top: 10px;">جاهز للإقلاع؟</p>
+        <div style="margin-bottom:15px; font-size: 20px;">💰 رصيدك: <span id="userBalance" style="color:#d4af37">0</span></div>
+        <button class="btn" id="mainBtn" onclick="toggleGame()">إقلاع 🛫</button>
+        <p style="font-size: 12px; color: #555; margin-top: 10px;">تكلفة الرحلة: 100 نقطة</p>
     </div>
 
     <script>
+        // إعدادات Firebase - تأكد أنها نفس التي في index.html
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
-        firebase.initializeApp(firebaseConfig);
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let playerName = localStorage.getItem('pName') || "لاعب_مجهول";
-        let score = 0, multi = 1.00, isFlying = false, crashPoint = 0, timer;
+        let pName = localStorage.getItem('pName') || "لاعب_مجهول";
+        let score = 0, multi = 1.0, isFlying = false, timer, crashPoint;
 
-        // ملفات الصوت
-        const engineSound = new Audio('https://www.soundjay.com/transportation/sounds/jet-engine-take-off-01.mp3');
-        const crashSound = new Audio('https://www.myinstants.com/media/sounds/explosion.mp3');
-        const winSound = new Audio('https://www.myinstants.com/media/sounds/ka-ching.mp3');
-
-        db.ref('players_logs/' + playerName).on('value', (s) => {
-            score = s.val() ? s.val().score : 0;
-            document.getElementById('userScore').innerText = score.toLocaleString();
+        // جلب رصيد اللاعب وتحديثه
+        db.ref('players_logs/' + pName).on('value', s => {
+            let data = s.val();
+            score = data ? data.score : 500;
+            document.getElementById('userBalance').innerText = score;
         });
 
-        function handleGame() {
+        function toggleGame() {
             if (!isFlying) {
-                let bet = parseInt(document.getElementById('betAmount').value);
-                if (score < bet || bet <= 0) return alert("الرصيد غير كافٍ!");
-                db.ref('players_logs/' + playerName).update({ score: score - bet });
+                if (score < 100) return alert("رصيدك غير كافٍ! تحتاج 100 نقطة.");
+                db.ref('players_logs/' + pName).update({ score: score - 100 });
                 startFlight();
             } else { cashOut(); }
         }
 
         function startFlight() {
-            isFlying = true; multi = 1.00;
-            crashPoint = (Math.random() * 3.5 + 1.1).toFixed(2);
-            
+            isFlying = true; multi = 1.0;
+            crashPoint = (Math.random() * 5 + 1.1).toFixed(2);
             document.getElementById('mainBtn').innerText = "سحب الأرباح 💰";
-            document.getElementById('mainBtn').classList.add('cashout');
-            document.getElementById('exp').style.display = "none";
-            document.getElementById('plane').style.opacity = "1";
-
-            // تشغيل صوت المحرك
-            engineSound.currentTime = 0;
-            engineSound.play();
-            engineSound.loop = true;
-
+            document.getElementById('mainBtn').classList.add('btn-cashout');
+            document.getElementById('plane').style.display = "block";
+            document.getElementById('plane').style.opacity = 1;
+            document.getElementById('explosion').style.display = "none";
+            
             timer = setInterval(() => {
                 multi += 0.01;
                 document.getElementById('multi').innerText = multi.toFixed(2) + "x";
+                // تحريك الطائرة للأعلى ولليمين
+                document.getElementById('plane').style.transform = `translate(${multi*15}px, -${multi*25}px)`;
                 
-                // زيادة سرعة الصوت مع الارتفاع
-                engineSound.playbackRate = 1 + (multi / 10);
+                if (multi >= crashPoint) doCrash();
+            }, 100);
+        }
 
-                let p = document.getElementById('plane');
-                p.style.transform = `translate(${multi * 12}px, -${multi * 20}px) rotate(-10deg)`;
-
-                if (multi >= crashPoint) { gameOver(); }
-            }, 80);
+        function doCrash() {
+            clearInterval(timer);
+            isFlying = false;
+            document.getElementById('plane').style.opacity = 0;
+            document.getElementById('explosion').style.display = "block";
+            document.getElementById('explosion').style.left = "30%";
+            document.getElementById('explosion').style.bottom = "40%";
+            
+            setTimeout(() => resetGame(), 2000);
         }
 
         function cashOut() {
             clearInterval(timer);
-            engineSound.pause();
-            winSound.play();
-            let bet = parseInt(document.getElementById('betAmount').value);
-            let win = Math.floor(bet * multi);
-            db.ref('players_logs/' + playerName).update({ score: score + win });
-            alert("تم السحب! ربحت " + win + " 💎");
-            resetUI();
+            isFlying = false;
+            let win = Math.floor(100 * multi);
+            db.ref('players_logs/' + pName).update({ score: score + win });
+            alert("كفو! سحبت " + win + " نقطة ✅");
+            resetGame();
         }
 
-        function gameOver() {
+        function resetGame() {
             clearInterval(timer);
-            engineSound.pause();
-            crashSound.play();
-            
-            let p = document.getElementById('plane');
-            let exp = document.getElementById('exp');
-            
-            // وضع الانفجار مكان الطائرة
-            exp.style.left = p.offsetLeft + "px";
-            exp.style.top = p.offsetTop + "px";
-            exp.style.display = "block";
-            p.style.opacity = "0";
-
-            document.getElementById('multi').style.color = "#ff0000";
-            document.getElementById('status').innerText = "💥 تحطمت الطائرة!";
-            
-            setTimeout(() => { resetUI(); }, 2000);
-        }
-
-        function resetUI() {
             isFlying = false;
             document.getElementById('mainBtn').innerText = "إقلاع 🛫";
-            document.getElementById('mainBtn').classList.remove('cashout');
-            document.getElementById('multi').style.color = "#d4af37";
+            document.getElementById('mainBtn').classList.remove('btn-cashout');
+            document.getElementById('multi').innerText = "1.00x";
             document.getElementById('plane').style.transform = "translate(0,0)";
+            document.getElementById('explosion').style.display = "none";
+            document.getElementById('plane').style.opacity = 1;
         }
     </script>
 </body>
