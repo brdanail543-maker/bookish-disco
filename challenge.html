@@ -3,268 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ساحة الملوك - تحدي الموت ⚔️</title>
+    <title>تحدي الموت: ملك الآليين ⚔️</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --red: #ff0000; --dark: #0a0a0a; }
+        :root { --gold: #ffcc33; --red: #ff0000; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
         
-        body { background: var(--dark); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; overflow: hidden; }
-        .wrapper { width: 95%; max-width: 450px; text-align: center; }
+        .setup-card { width: 95%; max-width: 450px; background: rgba(255,255,255,0.03); padding: 25px; border-radius: 30px; border: 1px solid #222; text-align: center; }
+        .bet-input { width: 85%; padding: 15px; border-radius: 15px; border: 2px solid var(--gold); background: #000; color: #fff; font-size: 22px; text-align: center; margin-bottom: 25px; }
 
-        /* اللوبي */
-        .setup-card { background: rgba(255,255,255,0.03); padding: 25px; border-radius: 30px; border: 1px solid #222; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
-        .bet-input { width: 85%; padding: 15px; border-radius: 15px; border: 2px solid var(--gold); background: #000; color: #fff; font-size: 20px; text-align: center; margin-bottom: 25px; outline: none; }
+        .btn-mode { padding: 20px; border-radius: 15px; border: none; cursor: pointer; font-weight: 900; transition: 0.3s; font-size: 16px; width: 100%; margin-bottom: 10px; }
+        .btn-pvp { background: var(--red); color: #fff; }
+        .btn-bot { background: #333; color: var(--gold); border: 1px solid var(--gold); }
+
+        /* ساحة المعركة */
+        .arena { height: 320px; background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndnBqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqJmVuPTEs1/3o7TKMGpxxy6T7skms/giphy.gif'); background-size: cover; position: relative; border-radius: 20px; border: 3px solid #444; margin-top: 15px; }
+        .hp-bar-bg { position: absolute; top: 15px; width: 130px; height: 12px; background: #222; border-radius: 6px; border: 1px solid #555; overflow: hidden; }
+        .hp-fill { height: 100%; background: linear-gradient(90deg, #f00, #ff6666); width: 100%; transition: 0.3s; }
+        .left-hp { left: 10px; } .right-hp { right: 10px; }
+
+        .char { position: absolute; bottom: 20px; width: 100px; filter: drop-shadow(0 0 15px #000); }
+        .p1 { left: 10px; } .p2 { right: 10px; transform: scaleX(-1); }
+        .char img { width: 100%; }
+
+        .bullet { position: absolute; width: 30px; height: 6px; background: linear-gradient(to right, yellow, orange); border-radius: 3px; display: none; box-shadow: 0 0 15px orange; z-index: 100; }
+
+        .fire-btn { background: linear-gradient(180deg, #ff4444, #800000); border: none; color: #fff; padding: 15px 50px; border-radius: 50px; font-weight: 900; cursor: pointer; margin-top: 20px; font-size: 22px; box-shadow: 0 5px 20px rgba(255,0,0,0.4); }
+        .fire-btn:disabled { opacity: 0.4; filter: grayscale(1); }
         
-        .mode-selection { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .mode-btn { padding: 20px 10px; border-radius: 18px; border: none; cursor: pointer; transition: 0.3s; font-weight: 900; position: relative; overflow: hidden; }
-        .btn-pvp { background: linear-gradient(45deg, #800000, var(--red)); color: #fff; }
-        .btn-bot { background: linear-gradient(45deg, #333, #555); color: var(--gold); }
-        .mode-btn:active { transform: scale(0.95); }
-        .mode-btn span { display: block; font-size: 11px; font-weight: normal; opacity: 0.8; }
-
-        /* ساحة القتال */
-        .battle-arena { height: 320px; background: url('https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExNHJndnBqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqZ3BqJmVuPTEs1/3o7TKMGpxxy6T7skms/giphy.gif'); background-size: cover; position: relative; border-radius: 25px; border: 3px solid #333; margin-top: 15px; box-shadow: 0 0 20px rgba(255,0,0,0.2); }
-        .hp-ui { position: absolute; top: 15px; width: 140px; height: 12px; background: #222; border-radius: 6px; border: 1px solid #444; overflow: hidden; }
-        .hp-fill { height: 100%; background: linear-gradient(90deg, #ff0000, #ff6666); width: 100%; transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        .hp-left { left: 10px; } .hp-right { right: 10px; }
-        
-        .character { position: absolute; bottom: 30px; width: 90px; filter: drop-shadow(0 0 10px rgba(0,0,0,0.8)); }
-        .p1-char { left: 20px; } .p2-char { right: 20px; transform: scaleX(-1); }
-        .character img { width: 100%; }
-        
-        .projectile { position: absolute; width: 25px; height: 10px; background: #fffb00; border-radius: 50%; display: none; box-shadow: 0 0 20px gold; z-index: 10; }
-
-        .fire-control { background: linear-gradient(180deg, #ff4444, #990000); border: none; color: white; padding: 18px 50px; border-radius: 50px; font-weight: 900; cursor: pointer; margin-top: 25px; font-size: 20px; box-shadow: 0 8px 15px rgba(255,0,0,0.3); transition: 0.2s; }
-        .fire-control:disabled { background: #333; opacity: 0.5; box-shadow: none; }
-        .status-bar { margin: 15px 0; color: #888; font-size: 14px; font-weight: bold; min-height: 20px; }
-
-        .room-card { background: #111; padding: 15px; border-radius: 15px; margin-top: 10px; border: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .shake { animation: shakeAnim 0.1s infinite; }
+        @keyframes shakeAnim { 0% { transform: translate(1px, 1px); } 50% { transform: translate(-1px, -1px); } 100% { transform: translate(0, 0); } }
     </style>
 </head>
 <body>
 
-<div class="wrapper">
-    <div id="lobby-screen" class="setup-card">
-        <h2 style="color:var(--gold); margin-top:0;">⚔️ تحدي الملوك ⚔️</h2>
-        <input type="number" id="betAmount" class="bet-input" placeholder="ادخل مبلغ الرهان 💰">
-        
-        <div class="mode-selection">
-            <button class="mode-btn btn-pvp" onclick="startCombat('player')">ضد لاعب حقيقي<span>انتظار منافس</span></button>
-            <button class="mode-btn btn-bot" onclick="startCombat('bot')">ضد الملك الآلي<span>لعب فوري</span></button>
-        </div>
-
-        <div id="available-rooms" style="margin-top:25px; text-align:right;">
-            <p style="font-size:12px; color:#555;">تحديات مفتوحة الآن:</p>
-        </div>
-    </div>
-
-    <div id="battle-screen" style="display:none">
-        <div style="background:rgba(255,204,51,0.1); padding:5px; border-radius:10px; color:var(--gold); font-weight:900; margin-bottom:10px;">
-            رهان: <span id="displayBet">0</span> | جائزة: <span id="displayPrize">0</span>
-        </div>
-        
-        <div class="battle-arena" id="arena-main">
-            <div class="hp-ui hp-left"><div class="hp-fill" id="hp1-bar"></div></div>
-            <div class="hp-ui hp-right"><div class="hp-fill" id="hp2-bar"></div></div>
-            
-            <div class="projectile" id="bullet"></div>
-
-            <div class="character p1-char"><img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png"><small id="p1-tag">أنت</small></div>
-            <div class="character p2-char"><img src="https://cdn-icons-png.flaticon.com/512/1070/1070807.png"><small id="p2-tag">المنافس</small></div>
-        </div>
-
-        <div class="status-bar" id="game-status">بانتظار المنافس...</div>
-        <button class="fire-control" id="shoot-btn" onclick="handleUserShoot()" disabled>🔥 إطـلاق نـار</button>
-    </div>
+<div class="setup-card" id="lobby">
+    <h2 style="color:var(--gold)">⚔️ تحدي ملوك القنص ⚔️</h2>
+    <input type="number" id="betAmount" class="bet-input" placeholder="مبلغ الرهان 💰">
+    <button class="btn-mode btn-pvp" onclick="startMatch('player')">مبارزة لاعب حقيقي 👥</button>
+    <button class="btn-mode btn-bot" onclick="startMatch('bot')">تحدي ملك الآليين (صعب جداً) 🤖</button>
+    <div id="room-list" style="margin-top:20px"></div>
 </div>
 
-<audio id="sfx-shot" src="https://www.soundjay.com/mechanical/gun-shot-1-way.mp3"></audio>
-<audio id="sfx-hit" src="https://www.soundjay.com/free-music/explosion-01.mp3"></audio>
+<div id="battle-screen" style="display:none; width: 95%; max-width: 450px; text-align: center;">
+    <div style="color:var(--gold); font-weight:900; margin-bottom:5px;">الجائزة: <span id="prize-val">0</span> 💰</div>
+    <div class="arena" id="arena-box">
+        <div class="hp-bar-bg left-hp"><div class="hp-fill" id="hp1"></div></div>
+        <div class="hp-bar-bg right-hp"><div class="hp-fill" id="hp2"></div></div>
+        <div class="bullet" id="bullet-obj"></div>
+        <div class="char p1"><img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png"></div>
+        <div class="char p2"><img src="https://cdn-icons-png.flaticon.com/512/1070/1070807.png"></div>
+    </div>
+    <div id="game-info" style="margin:10px; color:#888; font-weight:bold;">جاري التحميل...</div>
+    <button class="fire-btn" id="shoot-trigger" onclick="playerShoot()" disabled>💥 إطـلاق!</button>
+</div>
+
+<audio id="sound-gun" src="https://www.soundjay.com/mechanical/sounds/gun-shot-1-way.mp3"></audio>
+<audio id="sound-hit" src="https://www.soundjay.com/free-music/sounds/explosion-01.mp3"></audio>
 
 <script>
     const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const playerName = localStorage.getItem('pName') || "ملك_مجهول";
-    let activeRoomId = null;
-    let playerRole = "p1";
-    let isVsBot = false;
+    const myName = localStorage.getItem('pName') || "مقاتل";
+    let myRoom = null;
+    let mySide = "p1";
 
-    // إنشاء اللعبة
-    function startCombat(type) {
+    function startMatch(type) {
         const bet = parseInt(document.getElementById('betAmount').value);
-        if(!bet || bet < 10) return alert("الحد الأدنى للرهان 10 💰");
+        if(!bet || bet < 10) return alert("الحد الأدنى للرهان 10!");
 
-        db.ref('players_logs/'+playerName+'/score').once('value').then(s => {
-            const balance = s.val() || 0;
-            if(balance < bet) return alert("رصيدك غير كافٍ!");
+        db.ref('players_logs/'+myName+'/score').once('value').then(s => {
+            if((s.val()||0) < bet) return alert("رصيدك لا يكفي!");
+            db.ref('players_logs/'+myName).update({score: s.val() - bet});
 
-            // خصم رهان اللعب (حقيقي أو بوت)
-            db.ref('players_logs/'+playerName).update({score: balance - bet});
+            const ref = db.ref('sniper_combat').push();
+            myRoom = ref.key;
+            const isBot = (type === 'bot');
 
-            const roomRef = db.ref('king_combat').push();
-            activeRoomId = roomRef.key;
-            isVsBot = (type === 'bot');
-
-            roomRef.set({
-                p1: playerName,
-                p2: isVsBot ? "الملك_الآلي" : null,
-                bet: bet,
-                hp1: 100, hp2: 100,
-                turn: 'p1',
-                status: isVsBot ? 'active' : 'waiting',
-                mode: type
+            ref.set({
+                p1: myName, p2: isBot ? "ملك_الآليين" : null,
+                bet: bet, hp1: 100, hp2: 100,
+                turn: 'p1', status: isBot ? 'live' : 'wait',
+                botLevel: isBot ? 'legend' : 'none'
             });
-            initBattleUI(bet);
+            openArena(bet);
         });
     }
 
-    // إعداد واجهة المعركة
-    function initBattleUI(bet) {
-        document.getElementById('lobby-screen').style.display = 'none';
+    function openArena(bet) {
+        document.getElementById('lobby').style.display = 'none';
         document.getElementById('battle-screen').style.display = 'block';
-        document.getElementById('displayBet').innerText = bet;
-        document.getElementById('displayPrize').innerText = (bet * 2 * 0.75);
+        document.getElementById('prize-val').innerText = (bet * 2 * 0.75);
 
-        db.ref('king_combat/'+activeRoomId).on('value', snap => {
-            const room = snap.val();
-            if(!room) return;
+        db.ref('sniper_combat/'+myRoom).on('value', snap => {
+            const data = snap.val();
+            if(!data) return;
 
-            document.getElementById('hp1-bar').style.width = room.hp1 + "%";
-            document.getElementById('hp2-bar').style.width = room.hp2 + "%";
-            document.getElementById('p2-tag').innerText = room.p2 || "بانتظار...";
+            document.getElementById('hp1').style.width = data.hp1 + "%";
+            document.getElementById('hp2').style.width = data.hp2 + "%";
 
-            if(room.p2) {
-                const isMyTurn = (room.turn === 'p1');
-                document.getElementById('shoot-btn').disabled = !isMyTurn;
-                document.getElementById('game-status').innerText = isMyTurn ? "دورك.. أطلق بقوة!" : "الخصم يجهز سلاحه...";
+            if(data.p2) {
+                const turn = (data.turn === 'p1');
+                document.getElementById('shoot-trigger').disabled = !turn;
+                document.getElementById('game-info').innerText = turn ? "دورك.. صوب وأطلق!" : "الخصم يصوب عليك.. احذر!";
                 
-                // ذكاء البوت
-                if(room.mode === 'bot' && room.turn === 'p2' && room.hp2 > 0) {
-                    setTimeout(botLogic, 1500);
+                if(data.botLevel === 'legend' && data.turn === 'p2' && data.hp2 > 0) {
+                    setTimeout(botSniperAction, 1200);
                 }
             }
 
-            if(room.lastHit && room.lastHit.by !== 'p1') {
-                playShotEffect('p2', room.lastHit.success);
-                db.ref('king_combat/'+activeRoomId+'/lastHit').remove();
+            if(data.lastShot && data.lastShot.by !== 'p1') {
+                animateShot('p2', data.lastShot.hit);
+                db.ref('sniper_combat/'+myRoom+'/lastShot').remove();
             }
 
-            if(room.hp1 <= 0 || room.hp2 <= 0) finalizeGame(room);
+            if(data.hp1 <= 0 || data.hp2 <= 0) endGame(data);
         });
     }
 
-    // إطلاق النار (اللاعب)
-    function handleUserShoot() {
-        document.getElementById('shoot-btn').disabled = true;
-        const success = Math.random() > 0.35; // نسبة إصابة 65%
-        const dmg = success ? (Math.floor(Math.random() * 15) + 15) : 0;
+    function playerShoot() {
+        document.getElementById('shoot-trigger').disabled = true;
+        const hit = Math.random() > 0.3; // إصابة 70%
+        const damage = hit ? (Math.floor(Math.random()*15)+15) : 0;
         
-        db.ref('king_combat/'+activeRoomId).once('value').then(snap => {
-            const data = snap.val();
-            playShotEffect('p1', success);
+        db.ref('sniper_combat/'+myRoom).once('value').then(snap => {
+            animateShot('p1', hit);
             setTimeout(() => {
-                db.ref('king_combat/'+activeRoomId).update({
-                    hp2: Math.max(0, data.hp2 - dmg),
-                    turn: 'p2',
-                    lastHit: { by: 'p1', success: success }
+                db.ref('sniper_combat/'+myRoom).update({
+                    hp2: Math.max(0, snap.val().hp2 - damage),
+                    turn: 'p2', lastShot: { by: 'p1', hit: hit }
                 });
-            }, 600);
+            }, 500);
         });
     }
 
-    // منطق البوت (لعب حقيقي)
-    function botLogic() {
-        const success = Math.random() > 0.45; // البوت يصيب بنسبة 55%
-        const dmg = success ? (Math.floor(Math.random() * 12) + 13) : 0;
+    // منطق البوت القوي جداً
+    function botSniperAction() {
+        const hit = Math.random() > 0.25; // البوت يصيب بنسبة 75% (قوي جداً)
+        const damage = hit ? (Math.floor(Math.random()*20)+15) : 0;
         
-        db.ref('king_combat/'+activeRoomId).once('value').then(snap => {
-            const data = snap.val();
-            if(!data || data.turn !== 'p2') return;
-            playShotEffect('p2', success);
+        db.ref('sniper_combat/'+myRoom).once('value').then(snap => {
+            if(!snap.val() || snap.val().turn !== 'p2') return;
+            animateShot('p2', hit);
             setTimeout(() => {
-                db.ref('king_combat/'+activeRoomId).update({
-                    hp1: Math.max(0, data.hp1 - dmg),
-                    turn: 'p1',
-                    lastHit: { by: 'p2', success: success }
+                db.ref('sniper_combat/'+myRoom).update({
+                    hp1: Math.max(0, snap.val().hp1 - damage),
+                    turn: 'p1', lastShot: { by: 'p2', hit: hit }
                 });
-            }, 600);
+            }, 500);
         });
     }
 
-    // تأثيرات بصرية وصوتية
-    function playShotEffect(side, success) {
-        const bullet = document.getElementById('bullet');
-        document.getElementById('sfx-shot').play();
-        bullet.style.display = "block";
+    function animateShot(side, hit) {
+        const b = document.getElementById('bullet-obj');
+        const sndGun = document.getElementById('sound-gun');
+        const sndHit = document.getElementById('sound-hit');
+        const arena = document.getElementById('arena-box');
+
+        sndGun.currentTime = 0; sndGun.play();
+        b.style.display = "block";
         
         if(side === 'p1') {
-            bullet.style.left = "80px";
-            bullet.animate([{left:'80px'}, {left:'350px'}], 500);
+            b.style.left = "80px";
+            b.animate([{left:'80px'}, {left:'360px'}], {duration: 400, fill: 'forwards'});
         } else {
-            bullet.style.left = "350px";
-            bullet.animate([{left:'350px'}, {left:'80px'}], 500);
+            b.style.left = "360px";
+            b.animate([{left:'360px'}, {left:'80px'}], {duration: 400, fill: 'forwards'});
         }
 
         setTimeout(() => {
-            bullet.style.display = "none";
-            if(success) {
-                document.getElementById('sfx-hit').play();
-                document.getElementById('arena-main').animate([
-                    {transform: 'translate(2px, 2px)'}, {transform: 'translate(-2px, -2px)'}
-                ], { duration: 100, iterations: 3 });
+            b.style.display = "none";
+            if(hit) {
+                sndHit.currentTime = 0; sndHit.play();
+                arena.classList.add('shake');
+                setTimeout(() => arena.classList.remove('shake'), 200);
             }
-        }, 500);
+        }, 400);
     }
 
-    // نهاية اللعبة وتوزيع المال
-    function finalizeGame(room) {
-        const winnerName = room.hp1 <= 0 ? room.p2 : room.p1;
-        const totalPot = room.bet * 2;
-        const prizeMoney = totalPot * 0.75;
-        const adminCut = totalPot * 0.25;
-
-        if(winnerName === playerName) {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            db.ref('players_logs/'+playerName+'/score').transaction(s => (s||0) + prizeMoney);
-            db.ref('admin_profits/total').transaction(s => (s||0) + adminCut);
-            alert("فوز ملكي! حصلت على " + prizeMoney + " 💰");
+    function endGame(data) {
+        const win = data.hp1 <= 0 ? data.p2 : data.p1;
+        if(win === myName) {
+            confetti({particleCount: 200, spread: 70});
+            db.ref('players_logs/'+myName+'/score').transaction(s => (s||0) + (data.bet * 2 * 0.75));
+            db.ref('admin_profits/total').transaction(s => (s||0) + (data.bet * 2 * 0.25));
+            alert("🔥 نصر ملكي ساحق! ربحت الجائزة.");
         } else {
-            // في حال فاز البوت أو لاعب آخر، تذهب العمولة للأدمن ويخسر اللاعب رهانه
-            db.ref('admin_profits/total').transaction(s => (s||0) + adminCut);
-            alert("هزيمة! المنافس كان أقوى. 💀");
+            alert("💀 سحقتك نيران المنافس.. حاول مجدداً.");
         }
-        db.ref('king_combat/'+activeRoomId).remove();
+        db.ref('sniper_combat/'+myRoom).remove();
         location.reload();
     }
 
-    // قائمة التحديات الحقيقية
-    db.ref('king_combat').on('value', snap => {
+    // عرض الغرف
+    db.ref('sniper_combat').on('value', snap => {
         const rooms = snap.val();
-        const listDiv = document.getElementById('available-rooms');
-        listDiv.innerHTML = '<p style="font-size:12px; color:#555;">تحديات مفتوحة الآن:</p>';
+        const div = document.getElementById('room-list');
+        div.innerHTML = "<h4 style='color:#555'>تحديات بانتظارك:</h4>";
         for(let id in rooms) {
-            if(!rooms[id].p2 && rooms[id].p1 !== playerName) {
-                listDiv.innerHTML += `
-                    <div class="room-card">
-                        <span>👑 ${rooms[id].p1} <small>(${rooms[id].bet}💰)</small></span>
-                        <button onclick="joinMatch('${id}', ${rooms[id].bet})" style="background:var(--red); color:white; border:none; padding:8px 15px; border-radius:10px; cursor:pointer">مبارزة</button>
-                    </div>`;
+            if(!rooms[id].p2 && rooms[id].p1 !== myName) {
+                div.innerHTML += `<div style="background:#111; padding:10px; border-radius:10px; margin-bottom:10px; border:1px solid #333; display:flex; justify-content:space-between; align-items:center;">
+                    <span>👑 ${rooms[id].p1} (${rooms[id].bet}💰)</span>
+                    <button onclick="join('${id}', ${rooms[id].bet})" style="background:var(--red); color:#fff; border:none; padding:5px 15px; border-radius:8px; cursor:pointer">قبول التحدي</button>
+                </div>`;
             }
         }
     });
 
-    function joinMatch(id, bet) {
-        db.ref('players_logs/'+playerName+'/score').once('value').then(s => {
+    function join(id, bet) {
+        db.ref('players_logs/'+myName+'/score').once('value').then(s => {
             if((s.val()||0) < bet) return alert("رصيدك ناقص!");
-            db.ref('players_logs/'+playerName).update({score: s.val() - bet});
-            db.ref('king_combat/'+id).update({p2: playerName, status:'active'});
-            activeRoomId = id; playerRole = "p2";
-            initBattleUI(bet);
+            db.ref('players_logs/'+myName).update({score: s.val() - bet});
+            db.ref('sniper_combat/'+id).update({p2: myName, status:'live'});
+            myRoom = id; mySide = "p2";
+            openArena(bet);
         });
     }
 </script>
