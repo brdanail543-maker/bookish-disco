@@ -3,104 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ساحة التحدي الملكية ⚔️</title>
+    <title>تحدي الملوك - النسخة الاحترافية ⚔️</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         
-        :root { --gold: #ffcc33; --red: #ff4444; --bg: #0d0d0d; }
+        :root { --gold: #ffcc33; --red: #ff4444; --neon: #00f2ff; }
         
         body { 
-            background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; 
-            margin: 0; padding: 15px; text-align: center; overflow-x: hidden;
+            background: linear-gradient(-45deg, #000, #1a0000, #000, #00051a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #fff; font-family: 'Cairo', sans-serif; 
+            margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
 
-        .container { max-width: 450px; margin: auto; }
+        @keyframes gradientBG { 0% {background-position: 0% 50%;} 50% {background-position: 100% 50%;} 100% {background-position: 0% 50%;} }
 
-        /* شاشة الدخول والقائمة */
-        .card { background: rgba(255,255,255,0.05); border-radius: 20px; border: 1px solid #333; padding: 20px; margin-bottom: 20px; }
-        .input-bet { width: 80%; padding: 12px; border-radius: 12px; border: 1px solid var(--gold); background: #111; color: #fff; font-size: 18px; text-align: center; }
-        .btn-main { background: linear-gradient(45deg, var(--gold), #b8860b); color: #000; border: none; padding: 15px; border-radius: 12px; font-weight: 900; width: 85%; cursor: pointer; margin-top: 15px; }
+        .game-container { width: 95%; max-width: 450px; position: relative; z-index: 10; }
 
-        /* ساحة القتال */
-        .battle-arena { 
-            display: none; position: relative; height: 300px; 
-            background: url('https://i.pinimg.com/originals/15/8e/3c/158e3c8801736655c681283286576b53.gif'); 
-            background-size: cover; border-radius: 20px; border: 2px solid var(--red); margin-top: 10px;
-        }
-        .player { position: absolute; bottom: 20px; transition: 0.5s; width: 100px; }
-        .p1 { left: 10px; } .p2 { right: 10px; }
-        .player img { width: 70px; filter: drop-shadow(0 0 10px var(--red)); }
-        .p-label { background: rgba(0,0,0,0.8); font-size: 11px; padding: 2px 5px; border-radius: 5px; border: 1px solid var(--gold); }
+        /* الأنيميشن الخاص باللاعبين */
+        @keyframes idle { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes attackP1 { 0% { left: 20px; } 50% { left: 50%; transform: scale(1.2); } 100% { left: 20px; } }
+        @keyframes attackP2 { 0% { right: 20px; } 50% { right: 50%; transform: scale(1.2) scaleX(-1); } 100% { right: 20px; } }
+        @keyframes shake { 0% { transform: translate(1px, 1px); } 20% { transform: translate(-3px, 0); } 40% { transform: translate(3px, 2px); } 100% { transform: translate(0, 0); } }
 
-        /* الأزرار الـ 3D */
-        .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
-        .action-btn { 
-            background: rgba(255,255,255,0.05); border: 1px solid #444; color: #fff; 
-            padding: 10px 5px; border-radius: 15px; cursor: pointer; transition: 0.3s; font-size: 12px;
-        }
-        .action-btn img { width: 40px; display: block; margin: 0 auto 5px; }
-        .action-btn:active { transform: scale(0.9); background: var(--red); }
-
-        .announcement { 
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 28px; font-weight: 900; color: var(--gold); text-shadow: 0 0 15px #000;
-            display: none; z-index: 100; width: 100%;
+        .arena { 
+            height: 350px; background: rgba(0,0,0,0.6); border-radius: 30px; 
+            border: 2px solid var(--red); position: relative; overflow: hidden;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3); margin-top: 15px;
         }
 
-        .room-item { background: #1a1a1a; padding: 12px; border-radius: 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; border: 1px solid #333; }
-        .btn-join { background: var(--red); border: none; color: #fff; padding: 7px 15px; border-radius: 8px; font-weight: bold; }
+        .player { position: absolute; bottom: 40px; width: 120px; animation: idle 3s ease-in-out infinite; }
+        .p1 { left: 20px; } .p2 { right: 20px; transform: scaleX(-1); }
+        .player img { width: 100%; filter: drop-shadow(0 0 15px var(--red)); }
 
+        .attacking-p1 { animation: attackP1 0.5s fast-in-out !important; }
+        .attacking-p2 { animation: attackP2 0.5s fast-in-out !important; }
+        .screen-shake { animation: shake 0.3s cubic-bezier(.36,.07,.19,.97) both; }
+
+        /* الأزرار المتطورة */
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-top: 25px; }
+        .skill-btn { 
+            background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 20px; padding: 15px 5px; color: #fff; cursor: pointer;
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .skill-btn:hover { background: rgba(255,255,255,0.15); border-color: var(--gold); }
+        .skill-btn img { width: 45px; display: block; margin: 0 auto 8px; filter: saturate(1.5); }
+        .skill-btn b { font-size: 12px; display: block; }
+
+        .prize-tag { background: linear-gradient(90deg, transparent, var(--gold), transparent); color: #000; font-weight: 900; padding: 5px; margin-bottom: 10px; border-radius: 10px; }
+        
+        #win-overlay { 
+            position: absolute; inset: 0; background: rgba(0,0,0,0.8); 
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; font-size: 32px; font-weight: 900; color: var(--gold);
+        }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div id="setup-screen">
-        <h2 style="color: var(--red);">⚔️ ساحة التحدي الملكية ⚔️</h2>
-        <div class="card">
-            <p>مرحباً <span id="myName" style="color:var(--gold)">...</span></p>
-            <input type="number" id="betAmount" class="input-bet" placeholder="مبلغ الرهان 💰">
-            <button class="btn-main" onclick="createRoom()">إنشاء تحدي جديد</button>
-        </div>
-        
-        <div style="text-align: right; padding-right: 10px; color: #888;">التحديات النشطة:</div>
-        <div id="rooms-list" style="margin-top:10px;"></div>
+<div class="game-container" id="main-ui">
+    <div id="lobby-ui" style="background: rgba(255,255,255,0.03); padding: 30px; border-radius: 30px; border: 1px solid #333; text-align: center;">
+        <h2 style="color:var(--gold); font-size: 28px;">⚔️ سـاحة الأسـاطير ⚔️</h2>
+        <input type="number" id="betAmount" placeholder="ادخل رهانك💰" style="width: 90%; padding: 15px; border-radius: 15px; border: 1px solid var(--gold); background: #000; color: #fff; font-size: 20px; text-align: center; margin-bottom: 20px;">
+        <button onclick="createChallenge()" style="width: 95%; padding: 18px; border-radius: 15px; background: var(--gold); color: #000; border: none; font-weight: 900; font-size: 18px; cursor: pointer; box-shadow: 0 10px 20px rgba(255, 204, 51, 0.3);">تحدي لاعب الآن</button>
+        <div id="active-rooms" style="margin-top: 30px; text-align: right;"></div>
     </div>
 
-    <div id="battle-screen" style="display:none;">
-        <div class="card" style="padding:10px; margin-bottom:10px;">
-            <span style="color:var(--gold)">الجائزة: <span id="prizeDisplay">0</span> 💰</span>
-            <div id="game-status" style="font-size:13px; color:#aaa;">بانتظار الخصم...</div>
-        </div>
-
-        <div class="battle-arena">
-            <div class="announcement" id="winMsg"></div>
-            
-            <div class="player p1">
-                <div class="p-label" id="p1-name">...</div>
+    <div id="battle-ui" style="display: none;">
+        <div class="prize-tag">الجائزة الملكية: <span id="prizeAmount">0</span> 💰</div>
+        <div class="arena" id="arena-box">
+            <div id="win-overlay"></div>
+            <div class="player p1" id="p1-sprite">
                 <img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png">
+                <div style="background:var(--gold); color:#000; font-size:10px; border-radius:5px;" id="p1-label">...</div>
             </div>
-
-            <div class="player p2">
-                <div class="p-label" id="p2-name">...</div>
-                <img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png" style="transform: scaleX(-1);">
+            <div class="player p2" id="p2-sprite">
+                <img src="https://cdn-icons-png.flaticon.com/512/8115/8115312.png">
+                <div style="background:var(--red); color:#fff; font-size:10px; border-radius:5px;" id="p2-label">...</div>
             </div>
         </div>
 
-        <div class="actions" id="game-controls" style="visibility:hidden;">
-            <button class="action-btn" onclick="sendMove('🔥')">
-                <img src="https://cdn-icons-png.flaticon.com/512/4245/4245395.png"> هجوم
-            </button>
-            <button class="action-btn" onclick="sendMove('🛡️')">
-                <img src="https://cdn-icons-png.flaticon.com/512/1042/1042183.png"> دفاع
-            </button>
-            <button class="action-btn" onclick="sendMove('⚡')">
-                <img src="https://cdn-icons-png.flaticon.com/512/1251/1251785.png"> مباغتة
-            </button>
+        <div class="btn-grid" id="controls">
+            <button class="skill-btn" onclick="makeMove('🔥')"><img src="https://cdn-icons-png.flaticon.com/512/4245/4245395.png"><b>هجوم ناري</b></button>
+            <button class="skill-btn" onclick="makeMove('🛡️')"><img src="https://cdn-icons-png.flaticon.com/512/1042/1042183.png"><b>دفاع ملكي</b></button>
+            <button class="skill-btn" onclick="makeMove('⚡')"><img src="https://cdn-icons-png.flaticon.com/512/1251/1251785.png"><b>صدمة البرق</b></button>
         </div>
-        <p style="font-size:10px; color:#555; margin-top:20px;">رسوم الإمبراطورية 25% من إجمالي الرهان</p>
+        <div id="game-info" style="margin-top: 15px; color: #888; font-size: 14px;">بانتظار الخصم...</div>
     </div>
 </div>
 
@@ -109,107 +102,107 @@
     if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    const pName = localStorage.getItem('pName') || "مجهول";
-    let roomId = null;
-    document.getElementById('myName').innerText = pName;
+    const myName = localStorage.getItem('pName') || "لاعب";
+    let myRoom = null;
 
-    function createRoom() {
+    function createChallenge() {
         const bet = parseInt(document.getElementById('betAmount').value);
-        if(!bet || bet <= 0) return alert("أدخل مبلغاً صحيحاً!");
-
-        db.ref('players_logs/'+pName+'/score').once('value').then(s => {
-            const balance = s.val() || 0;
-            if(balance < bet) return alert("رصيدك لا يكفي!");
-            
-            db.ref('players_logs/'+pName).update({score: balance - bet});
-            const newRoom = db.ref('pvp_rooms').push();
-            roomId = newRoom.key;
-            newRoom.set({ p1: pName, bet: bet, status: 'waiting' });
-            initBattle(bet, pName, "بانتظار المنافس...");
+        if(!bet || bet < 1) return alert("الرهان!");
+        db.ref('players_logs/'+myName+'/score').once('value').then(s => {
+            if(s.val() < bet) return alert("رصيدك ناقص!");
+            db.ref('players_logs/'+myName).update({score: s.val() - bet});
+            const room = db.ref('super_pvp').push();
+            myRoom = room.key;
+            room.set({p1: myName, bet: bet, status: 'waiting'});
+            loadBattle(bet, myName);
         });
     }
 
-    function initBattle(bet, p1, status) {
-        document.getElementById('setup-screen').style.display = 'none';
-        document.getElementById('battle-screen').style.display = 'block';
-        document.getElementById('prizeDisplay').innerText = (bet * 2 * 0.75).toLocaleString();
-        document.getElementById('p1-name').innerText = p1;
-        document.getElementById('game-status').innerText = status;
-
-        db.ref('pvp_rooms/'+roomId).on('value', snap => {
-            const room = snap.val();
-            if(!room) return;
-            if(room.p2) {
-                document.getElementById('p2-name').innerText = room.p2;
-                document.getElementById('game-controls').style.visibility = 'visible';
-                document.getElementById('game-status').innerText = "بدأ القتال! اختر حركتك";
+    function loadBattle(bet, p1) {
+        document.getElementById('lobby-ui').style.display = 'none';
+        document.getElementById('battle-ui').style.display = 'block';
+        document.getElementById('prizeAmount').innerText = (bet * 2 * 0.75);
+        document.getElementById('p1-label').innerText = p1;
+        
+        db.ref('super_pvp/'+myRoom).on('value', snap => {
+            const data = snap.val();
+            if(!data) return;
+            if(data.p2) {
+                document.getElementById('p2-label').innerText = data.p2;
+                document.getElementById('game-info').innerText = "القتال مشتعل! اختر حركتك";
             }
-            if(room.m1 && room.m2) finishGame(room);
+            if(data.m1 && data.m2) runFight(data);
         });
     }
 
-    db.ref('pvp_rooms').on('value', snap => {
+    db.ref('super_pvp').on('value', snap => {
         const rooms = snap.val();
-        const list = document.getElementById('rooms-list');
-        list.innerHTML = "";
+        const div = document.getElementById('active-rooms');
+        div.innerHTML = "";
         for(let id in rooms) {
-            if(rooms[id].status === 'waiting' && rooms[id].p1 !== pName) {
-                list.innerHTML += `<div class="room-item">
-                    <span>👑 ${rooms[id].p1} <small>(${rooms[id].bet}💰)</small></span>
-                    <button class="btn-join" onclick="joinRoom('${id}', ${rooms[id].bet})">تحدي</button>
+            if(rooms[id].status === 'waiting' && rooms[id].p1 !== myName) {
+                div.innerHTML += `<div style="background:#111; padding:15px; border-radius:15px; border:1px solid #333; margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+                    <span>👑 ${rooms[id].p1} (${rooms[id].bet}💰)</span>
+                    <button onclick="join('${id}', ${rooms[id].bet})" style="background:var(--red); color:#fff; border:none; padding:8px 15px; border-radius:10px; cursor:pointer;">تحدي</button>
                 </div>`;
             }
         }
     });
 
-    function joinRoom(id, bet) {
-        db.ref('players_logs/'+pName+'/score').once('value').then(s => {
-            if((s.val()||0) < bet) return alert("رصيدك ناقص!");
-            db.ref('players_logs/'+pName).update({score: s.val() - bet});
-            db.ref('pvp_rooms/'+id).update({p2: pName, status: 'playing'});
-            roomId = id;
-            initBattle(bet, "...", "أنت في القتال!");
+    function join(id, bet) {
+        db.ref('players_logs/'+myName+'/score').once('value').then(s => {
+            if(s.val() < bet) return alert("رصيدك ناقص!");
+            db.ref('players_logs/'+myName).update({score: s.val() - bet});
+            db.ref('super_pvp/'+id).update({p2: myName, status: 'ready'});
+            myRoom = id;
+            loadBattle(bet, "...");
         });
     }
 
-    function sendMove(m) {
-        db.ref('pvp_rooms/'+roomId).once('value').then(snap => {
-            const moveKey = (snap.val().p1 === pName) ? 'm1' : 'm2';
-            db.ref('pvp_rooms/'+roomId).update({ [moveKey]: m });
-            document.getElementById('game-controls').style.visibility = 'hidden';
-            document.getElementById('game-status').innerText = "انتظر حركة الخصم...";
+    function makeMove(m) {
+        db.ref('super_pvp/'+myRoom).once('value').then(snap => {
+            const key = (snap.val().p1 === myName) ? 'm1' : 'm2';
+            db.ref('super_pvp/'+myRoom).update({[key]: m});
+            document.getElementById('controls').style.pointerEvents = 'none';
+            document.getElementById('controls').style.opacity = '0.5';
         });
     }
 
-    function finishGame(room) {
-        let win = "draw";
-        const m1 = room.m1; const m2 = room.m2;
-        if(m1 !== m2) {
-            if((m1==='🔥'&&m2==='⚡') || (m1==='⚡'&&m2==='🛡️') || (m1==='🛡️'&&m2==='🔥')) win = room.p1;
-            else win = room.p2;
-        }
-
-        const total = room.bet * 2;
-        const prize = total * 0.75;
-        const comm = total * 0.25;
-
-        const msg = document.getElementById('winMsg');
-        msg.style.display = "block";
-        
-        if(win === "draw") {
-            msg.innerText = "تـعـادل! ⚖️";
-            db.ref('players_logs/'+room.p1+'/score').transaction(s=>(s||0)+room.bet);
-            db.ref('players_logs/'+room.p2+'/score').transaction(s=>(s||0)+room.bet);
-        } else {
-            msg.innerText = (win === pName) ? "لـقـد فـزت! 🎉" : "خـسـرت 💀";
-            db.ref('players_logs/'+win+'/score').transaction(s=>(s||0)+prize);
-            db.ref('admin_profits/total').transaction(s=>(s||0)+comm);
-        }
+    function runFight(data) {
+        // أنيميشن الهجوم
+        document.getElementById('p1-sprite').classList.add('attacking-p1');
+        document.getElementById('p2-sprite').classList.add('attacking-p2');
+        document.getElementById('arena-box').classList.add('screen-shake');
 
         setTimeout(() => {
-            db.ref('pvp_rooms/'+roomId).remove();
-            location.reload();
-        }, 4000);
+            let winner = "draw";
+            const m1 = data.m1; const m2 = data.m2;
+            if(m1 !== m2) {
+                if((m1==='🔥'&&m2==='⚡') || (m1==='⚡'&&m2==='🛡️') || (m1==='🛡️'&&m2==='🔥')) winner = data.p1;
+                else winner = data.p2;
+            }
+
+            const prize = (data.bet * 2) * 0.75;
+            const comm = (data.bet * 2) * 0.25;
+            const overlay = document.getElementById('win-overlay');
+            overlay.style.display = 'flex';
+
+            if(winner === "draw") {
+                overlay.innerText = "تعادل حاسم! ⚖️";
+                db.ref('players_logs/'+data.p1+'/score').transaction(s => s + data.bet);
+                db.ref('players_logs/'+data.p2+'/score').transaction(s => s + data.bet);
+            } else {
+                overlay.innerHTML = (winner === myName) ? "نصر ملكي! 🎉" : "هزيمة نكراء 💀";
+                if(winner === myName) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                db.ref('players_logs/'+winner+'/score').transaction(s => s + prize);
+                db.ref('admin_profits/total').transaction(s => s + comm);
+            }
+
+            setTimeout(() => {
+                db.ref('super_pvp/'+myRoom).remove();
+                location.reload();
+            }, 5000);
+        }, 600);
     }
 </script>
 </body>
