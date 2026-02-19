@@ -3,181 +3,156 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منجم بلاتينيوم ⛏️ - نسخة التحكم بـ ID</title>
+    <title>لعبة المناجم - فئات سورية 🇸🇾</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --neon: #00ff44; --red: #ff4444; }
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; text-align: center; margin: 0; padding: 20px; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; display: flex; flex-direction: column; align-items: center; margin: 0; padding: 10px; }
         
-        .game-wrapper { max-width: 400px; margin: auto; }
-        .stats-panel { background: #111; padding: 15px; border-radius: 15px; border: 1px solid #222; margin-bottom: 15px; border-top: 3px solid var(--gold); }
-        .balance-val { color: var(--gold); font-weight: 900; font-size: 20px; }
+        .status-card { width: 100%; max-width: 400px; background: #111; border: 2px solid #d4af37; border-radius: 15px; padding: 15px; text-align: center; margin-bottom: 20px; }
+        .balance-val { color: #d4af37; font-size: 28px; font-weight: 900; block; margin-top: 5px; }
         
-        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin: 20px 0; }
-        .cell { aspect-ratio: 1; background: #1a1a1a; border: 1px solid #333; border-radius: 10px; font-size: 22px; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s; }
-        .cell.open { background: #222; border-color: var(--gold); cursor: default; }
-        .cell.bomb { background: var(--red) !important; border-color: #fff; }
-        
-        input { background: #000; color: #fff; border: 1px solid #444; padding: 12px; width: 80%; border-radius: 10px; text-align: center; font-size: 16px; margin-bottom: 10px; }
-        .btn { border: none; padding: 15px 30px; border-radius: 10px; font-weight: 900; width: 85%; cursor: pointer; transition: 0.3s; font-family: 'Cairo'; }
-        .btn-start { background: var(--gold); color: #000; }
-        .btn-cash { background: var(--neon); color: #000; display: none; }
-        
-        .multi-display { font-size: 24px; color: var(--neon); font-weight: 900; margin: 10px 0; }
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; max-width: 350px; }
+        .cell { aspect-ratio: 1; background: #222; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 24px; transition: 0.2s; border: 1px solid #333; }
+        .cell:active { transform: scale(0.9); }
+        .cell.revealed { background: #333; cursor: default; }
+        .cell.diamond { background: radial-gradient(#d4af37, #8a6d3b); }
+        .cell.bomb { background: #ff4d4d; }
+
+        .controls { width: 100%; max-width: 400px; margin-top: 20px; }
+        .bet-input { width: 100%; background: #111; border: 2px solid #333; color: #fff; padding: 12px; border-radius: 10px; text-align: center; font-size: 18px; margin-bottom: 10px; outline: none; box-sizing: border-box; }
+        .btn-start { width: 100%; background: #d4af37; color: #000; border: none; padding: 15px; border-radius: 10px; font-weight: 900; font-size: 20px; cursor: pointer; }
+        .btn-cashout { width: 100%; background: #28a745; color: #fff; border: none; padding: 15px; border-radius: 10px; font-weight: 900; font-size: 20px; cursor: pointer; margin-top: 10px; display: none; }
     </style>
 </head>
 <body>
 
-<div class="game-wrapper">
-    <div class="stats-panel">
-        <div style="font-size: 12px; color: #888;">رصيد اللاعب (ID: <span id="displayID">...</span>)</div>
-        <div class="balance-val" id="balanceText">0</div>
+    <div class="status-card">
+        <div style="font-size: 14px; color: #888;">رصيد اللاعب (ID: <span id="displayID">...</span>)</div>
+        <div class="balance-val"><span id="uBal">0</span> <small style="font-size: 14px;">ل.س</small></div>
     </div>
 
-    <input type="number" id="betInput" placeholder="أدخل مبلغ الرهان">
-    <button class="btn btn-start" id="startBtn" onclick="startGame()">بدء المغامرة ⛏️</button>
-    <button class="btn btn-cash" id="cashBtn" onclick="cashOut()">سحب الأرباح (X<span id="multi">1.00</span>)</button>
+    <input type="number" id="betAmt" class="bet-input" value="1000" placeholder="أدخل مبلغ الرهان">
+    <button id="startBtn" class="btn-start" onclick="startGame()">بدء المغامرة ⛏️</button>
+    <button id="cashoutBtn" class="btn-cashout" onclick="cashOut()">سحب الأرباح 💰</button>
 
-    <div class="multi-display" id="multiBox" style="visibility: hidden;">المضاعف الحالي: X<span id="multiVal">1.00</span></div>
-    
-    <div class="grid" id="mineGrid"></div>
-</div>
+    <div style="margin: 15px 0; color: #d4af37;" id="multiplierText">المضاعف الحالي: 1.00x</div>
 
-<script>
-    const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
-    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+    <div id="grid" class="grid"></div>
 
-    // --- نظام الـ ID الذكي ---
-    const urlParams = new URLSearchParams(window.location.search);
-    // يأخذ الـ ID من الرابط (game.html?id=123) أو الذاكرة، وإذا لم يجد يستخدم "player_1"
-    const pID = urlParams.get('id') || localStorage.getItem('pID') || "player_1"; 
-    document.getElementById('displayID').innerText = pID;
+    <script>
+        // --- إعدادات Firebase ---
+        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    let score = 0;
-    let bet = 0;
-    let bombs = [];
-    let openedCount = 0;
-    let isGaming = false;
-    let canCashOut = false;
-    let userGameMode = 'normal'; // الوضع القادم من لوحة التحكم
+        // --- جلب الـ ID بشكل صحيح ---
+        const urlParams = new URLSearchParams(window.location.search);
+        // الأولوية للـ ID الموجود في الرابط، ثم المخزن في المتصفح، ثم الافتراضي
+        const pID = urlParams.get('id') || localStorage.getItem('pName') || "player_1";
+        document.getElementById('displayID').innerText = pID;
 
-    // --- مراقبة الرصيد والتحكم (الربح/الخسارة) من اللوحة ---
-    db.ref('players_logs/' + pID).on('value', (s) => {
-        const data = s.val() || {};
-        score = data.score || 0;
-        userGameMode = data.gameMode || 'normal'; 
-        document.getElementById('balanceText').innerText = score.toLocaleString();
-        console.log("الوضع الحالي لهذا اللاعب هو: " + userGameMode);
-    });
+        let score = 0, currentBet = 0, isPlaying = false, mines = [], revealedCount = 0;
+        let userGameMode = 'normal';
 
-    function createGrid() {
-        const grid = document.getElementById('mineGrid');
-        grid.innerHTML = '';
-        for (let i = 0; i < 25; i++) {
-            const cell = document.createElement('div');
-            cell.className = 'cell';
-            cell.id = 'cell-' + i;
-            cell.onclick = () => revealCell(i, cell);
-            grid.appendChild(cell);
-        }
-    }
-
-    function startGame() {
-        bet = Math.floor(document.getElementById('betInput').value);
-        if (isNaN(bet) || bet <= 0 || bet > score) return alert("❌ رصيدك غير كافٍ");
-
-        db.ref('players_logs/' + pID).update({ score: score - bet }).then(() => {
-            isGaming = true;
-            canCashOut = true;
-            openedCount = 0;
-            bombs = [];
-            
-            // توزيع القنابل المبدئي
-            while(bombs.length < 3) {
-                let r = Math.floor(Math.random() * 25);
-                if(!bombs.includes(r)) bombs.push(r);
+        // قراءة الرصيد والتحكم
+        db.ref('players_logs/' + pID).on('value', (s) => {
+            if(s.exists()){
+                score = s.val().score;
+                userGameMode = s.val().gameMode || 'normal';
+                document.getElementById('uBal').innerText = score.toLocaleString();
             }
+        });
 
+        function createGrid() {
+            const gridDiv = document.getElementById('grid');
+            gridDiv.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.onclick = () => revealCell(i, cell);
+                gridDiv.appendChild(cell);
+            }
+        }
+
+        function startGame() {
+            if (isPlaying) return;
+            currentBet = parseInt(document.getElementById('betAmt').value);
+            if (score < currentBet || currentBet <= 0) return alert("الرصيد غير كافٍ!");
+
+            db.ref('players_logs/' + pID).update({ score: score - currentBet });
+            isPlaying = true;
+            revealedCount = 0;
             document.getElementById('startBtn').style.display = 'none';
-            document.getElementById('cashBtn').style.display = 'block';
-            document.getElementById('multiBox').style.visibility = 'visible';
+            document.getElementById('cashoutBtn').style.display = 'block';
+            updateMultiplier();
+            setupMines();
             createGrid();
-        });
-    }
+        }
 
-    function revealCell(index, element) {
-        if (!isGaming || element.classList.contains('open')) return;
-
-        // --- ميكانيكا التحكم (الجوهر) ---
-        if (userGameMode === 'force_loss') {
-            // إذا كان الوضع "إجبار خسارة"، ضع القنبلة هنا فوراً
-            if (!bombs.includes(index)) {
-                bombs.push(index);
+        function setupMines() {
+            mines = Array(25).fill(false);
+            let minesCount = 3; // عدد القنابل
+            
+            // --- نظام التحكم الذكي ---
+            if (userGameMode === 'force_loss') {
+                // في وضع الخسارة، نضع قنابل أكثر أو نجعلها في الأماكن التي سيضغط عليها
+                minesCount = 10; 
             }
-        } else if (userGameMode === 'force_win') {
-            // إذا كان الوضع "إجبار ربح"، احذف القنبلة من هنا إذا كانت موجودة
-            bombs = bombs.filter(b => b !== index);
-        }
 
-        if (bombs.includes(index)) {
-            element.classList.add('open', 'bomb');
-            element.innerText = '💣';
-            showAllBombs();
-            endGame(false);
-        } else {
-            element.classList.add('open');
-            element.innerText = '💎';
-            openedCount++;
-            let currentMulti = (1 + (openedCount * 0.25)).toFixed(2);
-            document.getElementById('multiVal').innerText = currentMulti;
-            document.getElementById('multi').innerText = currentMulti;
-        }
-    }
-
-    function showAllBombs() {
-        bombs.forEach(bIndex => {
-            let c = document.getElementById('cell-' + bIndex);
-            if(c) {
-                c.classList.add('open', 'bomb');
-                c.innerText = '💣';
+            let count = 0;
+            while (count < minesCount) {
+                let r = Math.floor(Math.random() * 25);
+                if (!mines[r]) { mines[r] = true; count++; }
             }
-        });
-    }
-
-    function cashOut() {
-        if (!isGaming || !canCashOut || openedCount === 0) return;
-        canCashOut = false; 
-        let multi = parseFloat(document.getElementById('multiVal').innerText);
-        let winAmt = Math.floor(bet * multi);
-
-        db.ref('players_logs/' + pID).update({ score: score + winAmt }).then(() => {
-            alert(`🎉 مبروك! ربحت ${winAmt}`);
-            resetUI();
-        });
-    }
-
-    function endGame(win) {
-        isGaming = false;
-        canCashOut = false;
-        if (!win) {
-            setTimeout(() => {
-                alert("💥 بوم! لقد خسرت.");
-                resetUI();
-            }, 500);
         }
-    }
 
-    function resetUI() {
-        isGaming = false;
-        document.getElementById('startBtn').style.display = 'block';
-        document.getElementById('cashBtn').style.display = 'none';
-        document.getElementById('multiBox').style.visibility = 'hidden';
-    }
+        function revealCell(index, el) {
+            if (!isPlaying || el.classList.contains('revealed')) return;
 
-    createGrid();
-</script>
+            el.classList.add('revealed');
+            
+            // خوارزمية التحكم بالربح والخسارة عند الضغط
+            let isBomb = mines[index];
+            
+            // إذا كان "إجبار خسارة" واللاعب ضغط 3 مرات، الرابعة قنبلة حتماً
+            if (userGameMode === 'force_loss' && revealedCount >= 2) isBomb = true;
+
+            if (isBomb) {
+                el.innerHTML = '💣';
+                el.classList.add('bomb');
+                gameOver(false);
+            } else {
+                el.innerHTML = '💎';
+                el.classList.add('diamond');
+                revealedCount++;
+                updateMultiplier();
+            }
+        }
+
+        function updateMultiplier() {
+            let mult = 1 + (revealedCount * 0.25);
+            document.getElementById('multiplierText').innerText = `المضاعف الحالي: ${mult.toFixed(2)}x`;
+        }
+
+        function cashOut() {
+            if (!isPlaying) return;
+            let mult = 1 + (revealedCount * 0.25);
+            let win = Math.floor(currentBet * mult);
+            db.ref('players_logs/' + pID).update({ score: score + win });
+            alert(`مبروك! ربحت ${win.toLocaleString()} ل.س`);
+            gameOver(true);
+        }
+
+        function gameOver(win) {
+            isPlaying = false;
+            document.getElementById('startBtn').style.display = 'block';
+            document.getElementById('cashoutBtn').style.display = 'none';
+            if (!win) alert("انفجر اللغم! خسرت الرهان 💥");
+        }
+
+        createGrid();
+    </script>
 </body>
 </html>
