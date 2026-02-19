@@ -13,32 +13,34 @@
         :root { --gold: #ffcc33; --silver: #c0c0c0; --bronze: #cd7f32; --win: #00ff44; }
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
         
-        /* قسم الملف الشخصي العلوي */
+        /* الملف الشخصي */
         .profile-section { background: linear-gradient(180deg, #111, #000); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; align-items: center; justify-content: space-around; }
-        .rank-icon { font-size: 30px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 50%; border: 2px solid var(--bronze); transition: 0.5s; }
+        .rank-icon { font-size: 30px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 50%; border: 2px solid var(--bronze); }
         .rank-info { text-align: right; flex-grow: 1; margin-right: 15px; }
-        .rank-name { font-weight: 900; color: var(--bronze); font-size: 18px; transition: 0.5s; }
+        .rank-name { font-weight: 900; color: var(--bronze); font-size: 18px; }
         .exp-bar-container { width: 100%; height: 8px; background: #222; border-radius: 5px; margin-top: 5px; overflow: hidden; }
-        .exp-bar-fill { width: 0%; height: 100%; transition: 1s ease-in-out; }
+        .exp-bar-fill { width: 0%; height: 100%; transition: 1s ease; }
 
         /* شريط الأرباح */
         .live-winners { background: rgba(255, 204, 51, 0.05); padding: 10px 0; overflow: hidden; white-space: nowrap; font-weight: bold; font-size: 14px; border-bottom: 1px solid #222; }
         #ticker { display: inline-block; animation: scroll 60s linear infinite; color: var(--gold); }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* كرت الرصيد */
+        /* الرصيد */
         .balance-card { margin: 15px auto; padding: 25px 20px; width: 85%; background: radial-gradient(circle, #111, #000); border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 20px rgba(255,204,51,0.1); }
         .balance-value { font-size: 50px; font-weight: 900; text-shadow: 0 0 15px var(--gold); }
 
-        /* صندوق الـ 12 ساعة */
-        .gift-box { width: 80px; cursor: pointer; transition: 0.3s; animation: shake 2s infinite; margin-top: 10px; }
+        /* قسم الصناديق */
+        .gifts-container { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+        .gift-item { flex: 1; max-width: 150px; }
+        .gift-box { width: 60px; cursor: pointer; transition: 0.3s; animation: shake 2s infinite; }
+        .gift-box:active { transform: scale(0.8); }
         @keyframes shake { 0%, 100% { transform: rotate(0); } 10% { transform: rotate(5deg); } 20% { transform: rotate(-5deg); } }
-        #giftTimer { font-size: 13px; color: var(--gold); font-weight: bold; margin-bottom: 20px; }
+        .timer-text { font-size: 11px; color: var(--gold); font-weight: bold; margin-top: 5px; height: 30px; }
 
         /* الألعاب */
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 92%; margin: 0 auto 30px; }
-        .game-item { background: #111; border: 1px solid #222; border-radius: 20px; padding: 15px 5px; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
-        .game-item:active { transform: scale(0.95); }
+        .game-item { background: #111; border: 1px solid #222; border-radius: 20px; padding: 15px 5px; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; }
         .game-item img { width: 45px; margin-bottom: 8px; }
         .game-level-tag { font-size: 9px; color: var(--gold); border: 1px solid var(--gold); padding: 1px 6px; border-radius: 10px; margin-top: 5px; }
 
@@ -64,7 +66,7 @@
             </div>
         </div>
         <div style="text-align: left;">
-            <small style="color:#666; font-size:10px;">PLAYER ID</small><br>
+            <small style="color:#666; font-size:10px;">ID PLAYER</small><br>
             <span id="displayID" style="font-size:12px; font-weight:bold;">---</span>
         </div>
     </div>
@@ -76,8 +78,16 @@
         <div class="balance-value" id="pBalanceDisplay">0</div>
     </div>
 
-    <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" class="gift-box" onclick="claimGift()">
-    <div id="giftTimer">جاري التحقق من الصندوق...</div>
+    <div class="gifts-container">
+        <div class="gift-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" class="gift-box" onclick="claimGift('halfDay')">
+            <div class="timer-text" id="timer12h">صندوق 12 ساعة</div>
+        </div>
+        <div class="gift-item">
+            <img src="https://cdn-icons-png.flaticon.com/512/4222/4222025.png" class="gift-box" style="filter: hue-rotate(45deg);" onclick="claimGift('fullDay')">
+            <div class="timer-text" id="timer24h">صندوق يومي 50</div>
+        </div>
+    </div>
 
     <div class="games-grid">
         <a href="wheel.html" class="game-item"><img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png"><span>عجلة الحظ</span><div class="game-level-tag">LVL 12</div></a>
@@ -85,7 +95,7 @@
         <a href="boxes.html" class="game-item" style="grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;">
             <img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png">
             <span style="font-weight: 900;">منجم الذهب الملكي ⛏️</span>
-            <div class="game-level-tag">MASTER RANK</div>
+            <div class="game-level-tag">MASTER</div>
         </a>
     </div>
 
@@ -103,66 +113,58 @@
         localStorage.setItem('pName', pId);
         document.getElementById('displayID').innerText = pId;
 
-        // نظام الرتب الجديد بناءً على طلبك
         function updateRank(score) {
             const icon = document.getElementById('rankIcon');
             const name = document.getElementById('rankName');
             const fill = document.getElementById('expFill');
             
-            if (score < 50000) { // تحت الـ 50 ألف (برونزي)
-                icon.innerText = "🥉"; icon.style.borderColor = var(--bronze);
+            if (score < 50000) {
+                icon.innerText = "🥉"; icon.style.borderColor = "#cd7f32";
                 name.innerText = "المستوى: برونزي"; name.style.color = "#cd7f32";
                 fill.style.width = (score/50000*100) + "%"; fill.style.background = "#cd7f32";
-            } else if (score < 250000) { // بين 50 ألف و 250 ألف (فضي)
+            } else if (score < 250000) {
                 icon.innerText = "🥈"; icon.style.borderColor = "#c0c0c0";
                 name.innerText = "المستوى: فضي"; name.style.color = "#c0c0c0";
-                // حساب التقدم داخل الرتبة الفضية
-                let progress = ((score - 50000) / (250000 - 50000)) * 100;
-                fill.style.width = progress + "%"; fill.style.background = "#c0c0c0";
-            } else { // فوق الـ 250 ألف (ذهبي)
+                fill.style.width = ((score-50000)/200000*100) + "%"; fill.style.background = "#c0c0c0";
+            } else {
                 icon.innerText = "🥇"; icon.style.borderColor = "#ffcc33";
-                name.innerText = "المستوى: ذهبي الملكي"; name.style.color = "#ffcc33";
+                name.innerText = "المستوى: ذهبي"; name.style.color = "#ffcc33";
                 fill.style.width = "100%"; fill.style.background = "#ffcc33";
-                fill.style.boxShadow = "0 0 15px #ffcc33";
             }
         }
 
-        // نظام صندوق الجائزة 50 ليرة كل 12 ساعة
-        function claimGift() {
-            const lastClaim = localStorage.getItem('lastClaim') || 0;
+        // نظام الصناديق (الموحد)
+        function claimGift(type) {
             const now = Date.now();
-            const twelveHours = 12 * 60 * 60 * 1000;
+            const storageKey = type === 'halfDay' ? 'lastClaim12' : 'lastClaim24';
+            const duration = type === 'halfDay' ? 12 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+            const lastClaim = localStorage.getItem(storageKey) || 0;
 
-            if (now - lastClaim >= twelveHours) {
+            if (now - lastClaim >= duration) {
                 db.ref('players_logs/' + pId).once('value', (s) => {
                     let current = s.exists() ? s.val().score : 0;
                     db.ref('players_logs/' + pId).update({ score: current + 50 });
-                    localStorage.setItem('lastClaim', now);
-                    alert("✅ تم إضافة 50 ليرة لرصيدك! عد بعد 12 ساعة.");
+                    localStorage.setItem(storageKey, now);
+                    alert("مبروك! استلمت 50 ليرة هدية 🎁");
                     soundCoin.play();
                 });
             } else {
-                alert("⏳ الصندوق فارغ حالياً، انتظر انتهاء الوقت.");
+                alert("الصندوق مغلق حالياً، انتظر حتى انتهاء الوقت!");
             }
         }
 
-        function updateGiftTimer() {
-            const lastClaim = localStorage.getItem('lastClaim') || 0;
+        function updateTimers() {
             const now = Date.now();
-            const twelveHours = 12 * 60 * 60 * 1000;
-            const diff = twelveHours - (now - lastClaim);
-
-            if (diff <= 0) {
-                document.getElementById('giftTimer').innerText = "الصندوق متاح الآن! 🎁";
-                document.getElementById('giftTimer').style.color = "#00ff44";
-            } else {
-                const hours = Math.floor(diff / (1000 * 60 * 60));
-                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                document.getElementById('giftTimer').innerText = `يفتح بعد: ${hours}س و ${mins}د`;
-                document.getElementById('giftTimer').style.color = "#ffcc33";
-            }
+            
+            // تحديث مؤقت 12 ساعة
+            const diff12 = (12 * 60 * 60 * 1000) - (now - (localStorage.getItem('lastClaim12') || 0));
+            document.getElementById('timer12h').innerText = diff12 <= 0 ? "جاهز للفتح! 🎁" : `يفتح بعد: ${Math.floor(diff12/3600000)}س و ${Math.floor((diff12%3600000)/60000)}د`;
+            
+            // تحديث مؤقت 24 ساعة
+            const diff24 = (24 * 60 * 60 * 1000) - (now - (localStorage.getItem('lastClaim24') || 0));
+            document.getElementById('timer24h').innerText = diff24 <= 0 ? "جاهز للفتح! 🎁" : `يفتح بعد: ${Math.floor(diff24/3600000)}س و ${Math.floor((diff24%3600000)/60000)}د`;
         }
-        setInterval(updateGiftTimer, 1000);
+        setInterval(updateTimers, 1000);
 
         window.onload = function() {
             setTimeout(() => { document.getElementById('welcomeJackpot').classList.add('show'); soundJackpot.play().catch(()=>{}); }, 1000);
@@ -172,11 +174,10 @@
         function closePop() { document.getElementById('welcomeJackpot').classList.remove('show'); soundCoin.play(); }
 
         function startTicker() {
-            const wins = ["ربح +5,000💰", "سحب ناجح💸", "فوز X10🔥"];
             let content = "";
             for(let i=0; i<30; i++) {
                 if (i % 6 === 0) content += ` • <span style="color:#fff; background:red; padding:1px 8px; border-radius:5px;">👑 مجهول ربح 100,000 👑</span> `;
-                else content += ` • USER_${Math.floor(Math.random()*99)}: ${wins[Math.floor(Math.random()*wins.length)]} `;
+                else content += ` • USER_${Math.floor(Math.random()*99)}: ربح +5,000💰 `;
             }
             document.getElementById('ticker').innerHTML = content + content;
         }
