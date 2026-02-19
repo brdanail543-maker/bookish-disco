@@ -28,7 +28,7 @@
 
         /* ستايل الإشعار المحسن */
         #adminNotif {
-            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 320px; background: #000; border: 2px solid var(--gold);
             border-radius: 20px; padding: 15px; z-index: 9999; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255,204,51,0.3);
@@ -43,7 +43,7 @@
         <div style="font-size: 30px;">🎁</div>
         <div style="color: var(--gold); font-weight: 900; font-size: 18px;">منحة ملكية!</div>
         <div id="notifMsg" style="margin-top: 5px; font-size: 14px; font-weight: bold;"></div>
-        <button onclick="closeNotif()" style="margin-top:10px; background:var(--gold); border:none; padding:5px 15px; border-radius:10px; font-weight:bold;">تم</button>
+        <button onclick="closeNotif()" style="margin-top:10px; background:var(--gold); border:none; padding:5px 15px; border-radius:10px; font-weight:bold; cursor:pointer;">استلام ✅</button>
     </div>
 
     <h1>الملوك PLATFORM</h1>
@@ -94,11 +94,16 @@
             });
         };
 
-        let pName = localStorage.getItem('pName') || prompt("ادخل اسمك الملكي:") || "لاعب_" + Math.floor(Math.random() * 9000);
-        localStorage.setItem('pName', pName);
+        // إدارة اسم اللاعب
+        let pName = localStorage.getItem('pName');
+        if (!pName) {
+            pName = prompt("ادخل اسمك الملكي:");
+            if (!pName || pName.trim() === "") pName = "لاعب_" + Math.floor(Math.random() * 9000 + 1000);
+            localStorage.setItem('pName', pName);
+        }
         document.getElementById('pNameDisplay').innerText = pName;
 
-        // تحديث الرصيد
+        // تحديث الرصيد تلقائياً
         db.ref('players_logs/' + pName).on('value', (s) => {
             if (!s.exists()) {
                 db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
@@ -107,19 +112,18 @@
             }
         });
 
-        // --- نظام استقبال الإشعارات الفوري ---
-        let lastNotifTime = 0;
+        // --- نظام استقبال الإشعارات الخاص باللاعب المحدد فقط ---
+        let lastNotifTime = Date.now(); // نبدأ من الوقت الحالي لتجنب الرسائل القديمة
         db.ref('global_announcement').on('value', (snapshot) => {
             const data = snapshot.val();
-            // التأكد أن الرسالة جديدة ولم تظهر من قبل باستخدام الوقت
-            if (data && data.time > lastNotifTime) {
+            const currentLoggedInUser = localStorage.getItem('pName');
+
+            // الشرط: الرسالة موجودة + موجهة لهذا اللاعب + الوقت جديد
+            if (data && data.target === currentLoggedInUser && data.time > lastNotifTime) {
                 lastNotifTime = data.time;
                 const box = document.getElementById('adminNotif');
                 document.getElementById('notifMsg').innerText = data.text;
                 box.classList.add('active');
-                
-                // صوت تنبيه بسيط (اختياري)
-                try { window.navigator.vibrate(200); } catch(e){}
             }
         });
 
