@@ -3,99 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الملوك PLATINUM 👑</title>
+    <title>PLATINUM SUPREME 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
+        :root { --gold: #ffcc33; --neon: #00d4ff; --win: #00ff44; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
         
-        :root {
-            --gold: #ffcc33;
-            --neon-blue: #00d4ff;
-            --glass: rgba(255, 255, 255, 0.07);
-        }
-
-        body { 
-            background: #050505; color: #fff; font-family: 'Cairo', sans-serif; 
-            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh; overflow-x: hidden;
-        }
-
-        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%); z-index: -1; }
-
-        /* شريط الإغراء المتحرك */
-        .live-winners { width: 100%; background: rgba(255, 204, 51, 0.1); border-bottom: 1px solid var(--gold); padding: 5px 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
-        .scrolling-text { display: inline-block; animation: scroll 20s linear infinite; color: var(--gold); }
+        /* شريط الأرباح السريع والمجنون */
+        .live-winners { background: rgba(255, 204, 51, 0.15); border-bottom: 2px solid var(--gold); padding: 12px 0; overflow: hidden; white-space: nowrap; font-weight: 900; font-size: 15px; }
+        #ticker { display: inline-block; animation: scroll 12s linear infinite; color: var(--gold); }
+        .jackpot-text { color: #fff; background: linear-gradient(90deg, #ff0000, #ffcc33); padding: 2px 10px; border-radius: 5px; box-shadow: 0 0 10px var(--gold); }
+        
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        h1 { font-size: 30px; font-weight: 900; background: linear-gradient(to right, #fff, var(--gold), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
-
-        /* كرت الرصيد المتوهج */
-        .balance-card {
-            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.01));
-            backdrop-filter: blur(15px); border: 1px solid rgba(255,215,0,0.3);
-            border-radius: 30px; padding: 25px; width: 85%; max-width: 400px;
-            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            margin-bottom: 25px; position: relative;
+        /* نافذة الجائزة الكبرى المنبثقة */
+        #jackpotPopup {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 85%; max-width: 360px; background: radial-gradient(circle, #222, #000); border: 4px solid var(--gold);
+            border-radius: 35px; z-index: 10000; padding: 35px 20px; box-shadow: 0 0 70px var(--gold);
+            transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        .balance-value { font-size: 45px; font-weight: 900; text-shadow: 0 0 15px var(--gold); transition: 0.3s; }
-        .winning-anim { animation: pulse-gold 0.5s infinite; }
-        @keyframes pulse-gold { 0% { transform: scale(1); } 50% { transform: scale(1.1); color: #fff; } 100% { transform: scale(1); } }
+        #jackpotPopup.show { transform: translate(-50%, -50%) scale(1); }
+        .jackpot-title { font-size: 45px; font-weight: 900; color: var(--gold); text-shadow: 0 0 20px #fff; margin: 0; animation: pulse 1s infinite; }
 
-        /* شبكة الألعاب */
-        .games-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 420px; padding-bottom: 30px; }
-        .game-box {
-            background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 20px; text-decoration: none;
-            display: flex; flex-direction: column; align-items: center; transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .game-box:active { transform: scale(0.95); }
-        .game-box img { width: 55px; height: 55px; margin-bottom: 8px; }
-        .game-box span { font-weight: bold; font-size: 14px; color: #eee; }
-        .win-tag { position: absolute; top: 10px; right: -20px; background: #ff4444; color: #fff; font-size: 9px; padding: 2px 25px; transform: rotate(45deg); font-weight: bold; }
-        .full-width { grid-column: span 2; flex-direction: row; gap: 20px; }
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }
 
-        #qrcode { background: #fff; padding: 5px; border-radius: 10px; box-shadow: 0 0 10px #fff; }
+        /* الواجهة الرئيسية */
+        .balance-card { margin: 25px auto; padding: 45px 20px; width: 85%; background: linear-gradient(135deg, #111, #000); border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 40px rgba(255,204,51,0.15); }
+        .balance-value { font-size: 65px; font-weight: 900; text-shadow: 0 0 25px var(--gold); }
+        
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; margin: 0 auto 40px; }
+        .game-item { background: #0a0a0a; border: 1px solid #222; border-radius: 28px; padding: 25px 10px; text-decoration: none; color: #fff; transition: 0.3s; position: relative; overflow: hidden; }
+        .game-item:active { transform: scale(0.9); border-color: var(--gold); }
+        .game-item img { width: 65px; height: 65px; margin-bottom: 12px; }
+        .full { grid-column: span 2; flex-direction: row; display: flex; align-items: center; justify-content: center; gap: 20px; }
+        
+        .qr-section { background: rgba(255,255,255,0.03); width: 85%; margin: 20px auto; padding: 18px; border-radius: 25px; display: flex; align-items: center; justify-content: space-around; border: 1px dashed var(--gold); }
     </style>
 </head>
-<body>
+<body onclick="initAudio()">
 
-    <div class="bg-animate"></div>
-
-    <div class="live-winners">
-        <div class="scrolling-text">
-            🔥 مبروك "أحمد" ربح 50,000 -- 💰 الملك "خالد" سحب 120,000 -- 💎 "سارة" فازت بالجائزة الكبرى -- 🚀 "محمد" ضاعف رصيده الآن!
-        </div>
+    <div id="jackpotPopup">
+        <div style="font-size: 60px;">💰</div>
+        <h2 class="jackpot-title">GRAND JACKPOT</h2>
+        <p style="color: #fff; font-weight: bold; font-size: 20px; margin-bottom: 5px;">لقد ربح أحد اللاعبين</p>
+        <div id="jackpotAmount" style="font-size: 40px; color: var(--win); font-weight: 900; text-shadow: 0 0 10px var(--win);">$10,000.00</div>
+        <button onclick="closeJackpot()" style="margin-top:25px; background:var(--gold); color:#000; border:none; padding:12px 40px; border-radius:18px; font-weight:900; font-size:18px; cursor:pointer;">استلام ✅</button>
     </div>
 
-    <h1>PLATINUM ROYAL</h1>
+    <div class="live-winners"><div id="ticker"></div></div>
 
-    <div class="balance-card" id="bCard">
-        <div style="font-size: 13px; color: #ccc;">الرصيد الملكي</div>
+    <h1 style="letter-spacing: 6px; color: var(--gold); margin-top: 25px; font-weight: 900;">PLATINUM ROYAL</h1>
+
+    <div class="balance-card">
+        <div style="color: #666; font-size: 14px; letter-spacing: 3px; font-weight: bold;">TOTAL BALANCE</div>
         <div class="balance-value" id="pBalanceDisplay">0</div>
-        <div style="font-size: 11px; color: var(--gold);">الملك: <span id="pNameDisplay">...</span></div>
     </div>
 
-    <div style="width: 90%; max-width: 420px; display: flex; align-items: center; justify-content: space-around; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px;">
+    <div class="qr-section">
         <div id="qrcode"></div>
         <div style="text-align: right;">
-            <b style="color:var(--gold);">شحن رصيد</b><br>
-            <small style="color:#777;">عبر شام كاش</small>
+            <b style="color:var(--gold); font-size: 18px;">DEPOSIT NOW</b><br>
+            <small style="color:#888;">شحن رصيد فوري عبر كود QR</small>
         </div>
     </div>
 
-    <div class="games-container">
-        <a href="wheel.html" class="game-box"><div class="win-tag">HOT</div><img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png"><span>عجلة الحظ</span></a>
-        <a href="plane.html" class="game-box"><div class="win-tag" style="background:var(--neon-blue)">X1000</div><img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png"><span>طائرة الحظ</span></a>
-        <a href="boxes.html" class="game-box full-width"><img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png"><span>منجم الذهب الملكي ⛏️</span></a>
-        <a href="challenge.html" class="game-box full-width" style="border-color: #ff4444;"><img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png"><span>ساحة التحدي ⚔️</span></a>
+    <div class="games-grid">
+        <a href="wheel.html" class="game-item"><img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png"><div>عجلة الحظ</div></a>
+        <a href="plane.html" class="game-item"><img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png"><div>طائرة الحظ</div></a>
+        <a href="boxes.html" class="game-item full"><img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png"><span style="font-size: 22px; font-weight: 900; color: var(--gold);">منجم الذهب الملكي ⛏️</span></a>
     </div>
 
     <script>
-        // ملفات الصوت (روابط خارجية لعملات حقيقية)
         const coinSound = new Audio('https://www.soundjay.com/misc/sounds/coins-spilled-1.mp3');
-        const singleCoin = new Audio('https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-one-up-games/one_up_games_casino_slot_machine_coins_payout_win_short_001.mp3');
+        const jackpotSound = new Audio('https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-one-up-games/one_up_games_casino_slot_machine_win_jackpot_001.mp3');
+        
+        let audioInit = false;
+        function initAudio() {
+            if(!audioInit) {
+                coinSound.play(); // صوت المال عند أول لمسة (الدخول)
+                audioInit = true;
+            }
+        }
+
+        // شريط الأرباح مع "الجائزة الكبرى 10000 دولار"
+        function startTicker() {
+            const actions = ["ربح +5,000💰", "سحب +12,000💸", "فوز X10🔥", "مكافأة +1,000🎁"];
+            const titles = ["الملك", "القيصر", "المحظوظ", "لاعب_77", "الزعيم", "الإمبراطور"];
+            let content = "";
+            for(let i=0; i<60; i++) {
+                if (i % 8 === 0) { // كل 8 أسماء تظهر جائزة كبرى
+                    content += ` • <span class="jackpot-text">🔥 ${titles[Math.floor(Math.random()*titles.length)]} ربح JACKPOT بقيمة $10,000.00 🔥</span> `;
+                } else {
+                    let name = titles[Math.floor(Math.random()*titles.length)] + "_" + Math.floor(Math.random()*999);
+                    content += ` • ${name}: ${actions[Math.floor(Math.random()*actions.length)]} `;
+                }
+            }
+            document.getElementById('ticker').innerHTML = content + content;
+        }
+        startTicker();
+
+        // نظام الجائزة الكبرى المنبثقة (بشكل وهمي مغري)
+        function showRandomJackpot() {
+            if(Math.random() > 0.6) {
+                const popup = document.getElementById('jackpotPopup');
+                const amounts = ["$10,000.00", "$15,500.00", "$20,000.00", "$5,000.00"];
+                document.getElementById('jackpotAmount').innerText = amounts[Math.floor(Math.random()*amounts.length)];
+                popup.classList.add('show');
+                jackpotSound.play(); // صوت المال القوي عند الانبثاق
+                setTimeout(closeJackpot, 6000);
+            }
+        }
+        setInterval(showRandomJackpot, 20000); // كل 20 ثانية احتمال ظهور الجائزة
+
+        function closeJackpot() {
+            document.getElementById('jackpotPopup').classList.remove('show');
+        }
 
         const firebaseConfig = { 
             apiKey: "AIzaSyDzCF3dG2qbWcaUdehA8NInJLYkQaYkfcc",
@@ -104,36 +131,25 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let pName = localStorage.getItem('pName') || prompt("ادخل اسمك الملكي:");
-        if (!pName) pName = "KING_" + Math.floor(Math.random()*999);
-        localStorage.setItem('pName', pName);
-        document.getElementById('pNameDisplay').innerText = pName;
+        let pId = localStorage.getItem('pName') || "ID_" + Math.floor(Math.random()*99999);
+        localStorage.setItem('pName', pId);
 
         let lastScore = -1;
-
-        db.ref('players_logs/' + pName).on('value', (s) => {
+        db.ref('players_logs/' + pId).on('value', (s) => {
             if (s.exists()) {
-                const newScore = s.val().score;
-                const display = document.getElementById('pBalanceDisplay');
-                
-                // إذا زاد الرصيد (شحن أو ربح)
-                if (lastScore !== -1 && newScore > lastScore) {
-                    coinSound.play(); // تشغيل صوت العملات
-                    display.classList.add('winning-anim'); // إضافة تأثير نبض
-                    setTimeout(() => display.classList.remove('winning-anim'), 1000);
+                const score = s.val().score;
+                if (lastScore !== -1 && score > lastScore) {
+                    coinSound.play(); // صوت المال عند زيادة الرصيد (شحن أو فوز)
                 }
-                
-                display.innerText = newScore.toLocaleString();
-                lastScore = newScore;
+                document.getElementById('pBalanceDisplay').innerText = score.toLocaleString();
+                lastScore = score;
             } else {
-                db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
+                db.ref('players_logs/' + pId).set({ score: 0 });
             }
         });
 
         window.onload = function() {
-            new QRCode(document.getElementById("qrcode"), { text: "be066ca49abcf3d1ac79a65895aecb5e", width: 60, height: 60 });
-            // تشغيل صوت خفيف عند الدخول كترحيب (اختياري)
-            document.body.onclick = () => { coinSound.volume = 0.5; }; 
+            new QRCode(document.getElementById("qrcode"), { text: "be066ca49abcf3d1ac79a65895aecb5e", width: 70, height: 70 });
         };
     </script>
 </body>
