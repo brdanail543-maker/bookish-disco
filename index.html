@@ -28,7 +28,7 @@
 
         /* ستايل الإشعار المحسن */
         #adminNotif {
-            position: fixed; top: -200px; left: 50%; transform: translateX(-50%);
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
             width: 85%; max-width: 320px; background: #000; border: 2px solid var(--gold);
             border-radius: 20px; padding: 15px; z-index: 9999; text-align: center;
             box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255,204,51,0.3);
@@ -103,7 +103,7 @@
         }
         document.getElementById('pNameDisplay').innerText = pName;
 
-        // تحديث الرصيد تلقائياً
+        // تحديث الرصيد تلقائياً للاعب الحالي
         db.ref('players_logs/' + pName).on('value', (s) => {
             if (!s.exists()) {
                 db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
@@ -112,18 +112,25 @@
             }
         });
 
-        // --- نظام استقبال الإشعارات الخاص باللاعب المحدد فقط ---
-        let lastNotifTime = Date.now(); // نبدأ من الوقت الحالي لتجنب الرسائل القديمة
+        // --- نظام الإشعارات الذكي (Targeted Notification) ---
+        let lastNotifTime = Date.now(); // لمنع ظهور الرسائل القديمة عند فتح الصفحة
+
         db.ref('global_announcement').on('value', (snapshot) => {
             const data = snapshot.val();
-            const currentLoggedInUser = localStorage.getItem('pName');
+            const myCurrentName = localStorage.getItem('pName');
 
-            // الشرط: الرسالة موجودة + موجهة لهذا اللاعب + الوقت جديد
-            if (data && data.target === currentLoggedInUser && data.time > lastNotifTime) {
-                lastNotifTime = data.time;
+            // الشرط: الرسالة موجودة + موجهة لاسمي + الوقت جديد (بعد فتحي للصفحة)
+            if (data && data.target === myCurrentName && data.time > lastNotifTime) {
+                lastNotifTime = data.time; // تحديث الوقت لعدم تكرار الإشعار
+                
                 const box = document.getElementById('adminNotif');
-                document.getElementById('notifMsg').innerText = data.text;
+                const msg = document.getElementById('notifMsg');
+                
+                msg.innerText = data.text;
                 box.classList.add('active');
+                
+                // هز الهاتف للتنبيه
+                if (window.navigator.vibrate) window.navigator.vibrate(200);
             }
         });
 
