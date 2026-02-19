@@ -69,7 +69,6 @@
         .game-card img { width: 50px; height: 50px; margin-bottom: 10px; }
         .game-card span { font-size: 14px; font-weight: bold; }
 
-        /* منجم الذهب الملكي */
         .gold-mine-card { 
             grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;
             background: linear-gradient(90deg, rgba(255,204,51,0.1), rgba(0,0,0,0.4));
@@ -77,7 +76,6 @@
         }
         .gold-mine-card span { font-size: 18px; color: var(--gold); }
 
-        /* ساحة التحدي (PvP) الجديدة */
         .challenge-card {
             grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;
             background: linear-gradient(45deg, #440000, #110000);
@@ -88,9 +86,24 @@
 
         .game-card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
         .footer-text { margin-top: 30px; color: #444; font-size: 11px; }
+
+        /* ستايل إشعار الإدارة الجديد */
+        #adminNotification {
+            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 350px; background: rgba(0, 0, 0, 0.9);
+            border: 2px solid var(--gold); border-radius: 15px; padding: 15px;
+            z-index: 10000; transition: 0.5s ease-in-out; text-align: center;
+            box-shadow: 0 0 20px rgba(255, 204, 51, 0.4);
+        }
+        #adminNotification.show { top: 20px; }
     </style>
 </head>
 <body>
+
+    <div id="adminNotification">
+        <div style="color: var(--gold); font-weight: 900; font-size: 18px; margin-bottom: 5px;">🎁 إشعار ملكي</div>
+        <div id="notifText" style="font-size: 14px; color: #fff;"></div>
+    </div>
 
     <h1>الملوك PLATFORM</h1>
 
@@ -132,7 +145,10 @@
     <div class="footer-text">DESIGN BY ROYAL TEAM V2.5</div>
 
     <script>
-        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        const firebaseConfig = { 
+            apiKey: "AIzaSyDzCF3dG2qbWcaUdehA8NInJLYkQaYkfcc",
+            databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" 
+        };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -157,6 +173,23 @@
                 playerRef.set({ score: 0, lastLogin: new Date().getTime() });
             } else {
                 document.getElementById('pBalanceDisplay').innerText = snapshot.val().score.toLocaleString();
+            }
+        });
+
+        // --- كود استقبال إشعارات الإدارة والهدية ---
+        db.ref('global_announcement').on('value', (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                const notifBox = document.getElementById('adminNotification');
+                const notifText = document.getElementById('notifText');
+                
+                notifText.innerText = data.text;
+                notifBox.classList.add('show');
+
+                // إخفاء الإشعار تلقائياً بعد 7 ثواني
+                setTimeout(() => {
+                    notifBox.classList.remove('show');
+                }, 7000);
             }
         });
     </script>
