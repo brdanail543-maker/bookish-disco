@@ -3,48 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عجلة الملوك - الإصدار الثابت 🎡</title>
+    <title>عجلة الملوك - نسخة الربح العالي 🎡</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        
         .header { width: 100%; display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; box-sizing: border-box; }
         .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; }
-
         .wheel-container { position: relative; width: 340px; height: 340px; margin-top: 50px; }
-        
-        /* السهم العلوي الثابت */
-        .pointer { 
-            position: absolute; top: -20px; left: 50%; transform: translateX(-50%); 
-            width: 0; height: 0; border-left: 20px solid transparent; 
-            border-right: 20px solid transparent; border-top: 40px solid #ff0000; 
-            z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5));
-        }
-
-        .wheel-main { 
-            width: 100%; height: 100%; border-radius: 50%; border: 8px solid #d4af37; 
-            position: relative; overflow: hidden; 
-            transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); /* دوران انسيابي جداً */
-            background: conic-gradient(
-                #d4af37 0deg 45deg, #111 45deg 90deg, 
-                #d4af37 90deg 135deg, #111 135deg 180deg, 
-                #d4af37 180deg 225deg, #111 225deg 270deg, 
-                #d4af37 270deg 315deg, #111 315deg 360deg
-            );
-        }
-
+        .pointer { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 20px solid transparent; border-right: 20px solid transparent; border-top: 40px solid #ff0000; z-index: 100; filter: drop-shadow(0 0 10px rgba(0,0,0,0.5)); }
+        .wheel-main { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #d4af37; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#d4af37 0deg 45deg, #111 45deg 90deg, #d4af37 90deg 135deg, #111 135deg 180deg, #d4af37 180deg 225deg, #111 225deg 270deg, #d4af37 270deg 315deg, #111 315deg 360deg); }
         .labels { position: absolute; width: 100%; height: 100%; top: 0; left: 0; }
-        .labels span {
-            position: absolute; width: 100%; height: 100%; text-align: center;
-            font-weight: 900; font-size: 22px; padding-top: 25px;
-            box-sizing: border-box; transform-origin: center; display: block;
-        }
+        .labels span { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: 900; font-size: 22px; padding-top: 25px; box-sizing: border-box; transform-origin: center; display: block; }
         .labels span:nth-child(odd) { color: #111; }
         .labels span:nth-child(even) { color: #d4af37; }
-
         .controls { width: 95%; max-width: 420px; margin-top: 25px; text-align: center; }
         .bet-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
         .bet-btn { background: #111; border: 1px solid #d4af37; color: #d4af37; padding: 12px 0; border-radius: 10px; font-weight: 900; cursor: pointer; }
@@ -55,8 +28,7 @@
 <body>
 
     <div class="header">
-        <div class="balance-chip">💰 <span id="uBal">0</span></div>
-        <a href="index.html" style="color:#d4af37; text-decoration:none; font-weight:bold;">🔙 خروج</a>
+        <div class="balance-chip">💰 <span id="uBal">0</span> (ID: <span id="displayID">...</span>)</div>
     </div>
 
     <div class="wheel-container">
@@ -90,12 +62,20 @@
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let pName = localStorage.getItem('pName');
-        let score = 0, isSpinning = false;
-        let currentRotation = 0; // حل مشكلة الاهتزاز عبر التراكم
 
-        db.ref('players_logs/' + pName).on('value', s => {
-            if(s.exists()){ score = s.val().score; document.getElementById('uBal').innerText = score; }
+        const urlParams = new URLSearchParams(window.location.search);
+        const pID = urlParams.get('id') || localStorage.getItem('pName') || "player_1";
+        document.getElementById('displayID').innerText = pID;
+
+        let score = 0, isSpinning = false, currentRotation = 0;
+        let userGameMode = 'normal';
+
+        db.ref('players_logs/' + pID).on('value', s => {
+            if(s.exists()){ 
+                score = s.val().score; 
+                userGameMode = s.val().gameMode || 'normal';
+                document.getElementById('uBal').innerText = score.toLocaleString();
+            }
         });
 
         function setBet(amt) { document.getElementById('betAmt').value = amt; }
@@ -106,52 +86,61 @@
             if (score < bet || bet <= 0) return alert("الرصيد لا يكفي!");
 
             isSpinning = true;
-            document.getElementById('spinBtn').disabled = true;
-            db.ref('players_logs/' + pName).update({ score: score - bet });
+            db.ref('players_logs/' + pID).update({ score: score - bet });
 
-            let chance = Math.random() * 100;
-            let targetDeg;
-            let resultMulti;
+            let segments = [
+                { val: 0, deg: 22.5 },    // 0x
+                { val: 1.5, deg: 67.5 },  // 1.5x
+                { val: 0, deg: 112.5 },   // 0x
+                { val: 2, deg: 157.5 },   // x2 (الهدف الرئيسي للربح العالي)
+                { val: 0, deg: 202.5 },   // 0x
+                { val: 0.5, deg: 247.5 }, // 0.5x
+                { val: 0, deg: 292.5 },   // 0x
+                { val: 1.25, deg: 337.5 } // 1.25x
+            ];
 
-            // نظام الربح والخسارة (لصالحك)
-            let riskFactor = (bet >= 5000) ? 90 : 75; 
-
-            if (chance < riskFactor) { 
-                let loses = [22.5, 112.5, 202.5, 292.5]; 
-                targetDeg = loses[Math.floor(Math.random() * loses.length)];
-                resultMulti = 0;
-            } else if (chance < 96) {
-                let wins = [67.5, 247.5, 337.5];
-                targetDeg = wins[Math.floor(Math.random() * wins.length)];
-                if(targetDeg == 67.5) resultMulti = 1.5;
-                else if(targetDeg == 247.5) resultMulti = 0.5;
-                else resultMulti = 1.25;
+            let target;
+            if (userGameMode === 'force_loss') {
+                // خسارة: اختر عشوائياً خانة فيها 0x
+                let losses = segments.filter(s => s.val === 0);
+                target = losses[Math.floor(Math.random() * losses.length)];
+            } else if (userGameMode === 'force_win') {
+                // ربح عالي: اختر خانة الـ x2 حصراً
+                target = segments.find(s => s.val === 2);
             } else {
-                targetDeg = 157.5; // x2
-                resultMulti = 2;
+                // وضع طبيعي: 75% خسارة (تعديل لرفع صعوبة اللعبة)
+                if (Math.random() < 0.75) {
+                    let losses = segments.filter(s => s.val === 0);
+                    target = losses[Math.floor(Math.random() * losses.length)];
+                } else {
+                    target = segments[Math.floor(Math.random() * segments.length)];
+                }
             }
 
-            // --- خوارزمية الدوران السلس بدون اهتزاز ---
-            // نقوم بحساب المسافة المطلوبة للوصول للهدف مع إضافة 10 دورات كاملة
-            let extraDegrees = 3600; 
-            let rotationToGo = extraDegrees + (360 - (currentRotation % 360)) - targetDeg;
-            currentRotation += rotationToGo;
+            // حساب زاوية الوقوف بدقة (360 - زاوية الخانة لتأتي تحت السهم العلوي)
+            let stopAngle = 360 - target.deg;
+            // إضافة 5 دورات كاملة (1800 درجة) للزخم البصري
+            currentRotation += (360 * 5) + stopAngle; 
 
             const wheel = document.getElementById('wheelMain');
             wheel.style.transform = `rotate(${currentRotation}deg)`;
 
             setTimeout(() => {
                 isSpinning = false;
-                document.getElementById('spinBtn').disabled = false;
-                let winAmt = Math.floor(bet * resultMulti);
-                if (winAmt > 0) {
-                    db.ref('players_logs/' + pName).update({ score: score + winAmt });
-                    alert(`🎉 ربحت: ${winAmt}`);
+                let win = Math.floor(bet * target.val);
+                if (win > 0) {
+                    db.ref('players_logs/' + pID).update({ score: score + win });
+                    alert("مبروك! ربحت: " + win + " (المضاعف: " + target.val + "x)");
                 } else {
-                    alert("❌ حظاً أوفر!");
+                    alert("حظ أوفر، النتيجة 0x");
                 }
-                // ملاحظة: لا نقم بإعادة تعيين الانتقال أو الزاوية هنا، ليبقى الوضع ثابتاً وسلساً.
-            }, 4000);
+                
+                // تصفير زاوية العرض برمجياً للحفاظ على الزاوية الحالية دون الدوران اللانهائي
+                currentRotation %= 360;
+                wheel.style.transition = 'none';
+                wheel.style.transform = `rotate(${currentRotation}deg)`;
+                setTimeout(() => wheel.style.transition = 'transform 4s cubic-bezier(0.15, 0, 0.15, 1)', 50);
+            }, 4100);
         }
     </script>
 </body>
