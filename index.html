@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL | المنصة المتكاملة 👑</title>
+    <title>PLATINUM ROYAL | المنصة الرسمية 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -11,48 +11,43 @@
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #ffcc33; --neon: #00ff44; --card-bg: #111; --border: #222; }
         
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 40px; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 40px; overflow-x: hidden; }
 
-        /* القسم 1: الشريط العلوي */
+        /* 1. الشريط العلوي */
         .top-nav { background: #0a0a0a; padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
         .id-tag { font-size: 11px; color: #777; border: 1px solid #333; padding: 2px 8px; border-radius: 5px; }
         .status-tag { color: var(--neon); font-size: 11px; font-weight: bold; }
 
-        /* القسم 2: لوحة الرصيد الكبيرة */
+        /* 2. لوحة الرصيد */
         .hero-balance { padding: 40px 20px; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); text-align: center; border-bottom: 1px solid var(--border); }
         .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px; }
         .balance-value { font-size: 60px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
         .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); }
 
-        /* القسم 3: شريط مجهول والإشعارات */
+        /* 3. شريط مجهول */
         .live-news { background: #111; padding: 10px 0; border-bottom: 1px solid var(--border); }
         marquee { color: var(--gold); font-size: 14px; font-weight: bold; }
 
-        /* القسم 4: شبكة الألعاب المنظمة */
+        /* 4. العناوين والأقسام */
         .section-header { text-align: right; padding: 25px 20px 10px; font-size: 15px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; }
         .section-header::before { content: ''; width: 4px; height: 18px; background: var(--gold); display: inline-block; border-radius: 2px; }
         
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px; }
         .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; text-decoration: none; color: #fff; text-align: center; transition: 0.3s; }
-        .game-card:hover { border-color: var(--gold); background: #161616; }
+        .game-card:hover { border-color: var(--gold); }
         .game-card i { font-size: 35px; margin-bottom: 10px; display: block; }
         
-        /* ميزة لعبة المنجم */
-        .mines-card { background: linear-gradient(135deg, #111 0%, #1a1a1a 100%); border-color: #555; position: relative; overflow: hidden; }
+        .mines-card { background: linear-gradient(135deg, #111 0%, #1a1a1a 100%); position: relative; overflow: hidden; }
         .mines-card::after { content: 'HOT'; position: absolute; top: 10px; right: -20px; background: #ff4444; font-size: 10px; padding: 2px 25px; transform: rotate(45deg); font-weight: bold; }
 
-        /* القسم 5: صناديق المكافآت */
+        /* 5. المكافآت */
         .gifts-flex { display: flex; gap: 15px; padding: 0 20px; }
         .gift-item { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; }
         .gift-item img { width: 40px; margin-bottom: 5px; }
-        .gift-item span { font-size: 11px; font-weight: bold; color: var(--gold); }
 
-        /* القسم 6: مركز الشحن (الشام كاش) */
-        .deposit-box { background: #fff; color: #000; margin: 25px 20px; padding: 20px; border-radius: 25px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 10px 30px rgba(255,255,255,0.1); }
-        .deposit-info h4 { margin: 0; font-size: 20px; font-weight: 900; color: #000; }
-        .deposit-info p { margin: 2px 0; font-size: 12px; font-weight: bold; color: #555; }
-        #qrcode { background: #fff; padding: 5px; border-radius: 10px; border: 1px solid #eee; }
-
+        /* 6. مركز الشحن */
+        .deposit-box { background: #fff; color: #000; margin: 25px 20px; padding: 20px; border-radius: 25px; display: flex; align-items: center; justify-content: space-between; }
+        #qrcode { background: #fff; padding: 5px; border-radius: 10px; }
     </style>
 </head>
 <body>
@@ -70,42 +65,40 @@
 
     <div class="live-news">
         <marquee scrollamount="6">
-            👑 مجهول تم إيداع 50,000 عبر الشام كاش • مبروك للمستخدم USER_22 ربح 25,000 في المنجم • شحن الرصيد متاح الآن 👑
+            👑 مجهول تم إيداع 50,000 عبر الشام كاش • مبروك للمستخدم ربح 25,000 في المنجم • شحن الرصيد متاح الآن عبر الوكيل 👑
         </marquee>
     </div>
 
     <div class="section-header">الألعاب المتوفرة</div>
     <div class="games-grid">
-        <a href="mines.html" class="game-card mines-card"><i>⛏️</i><b>لعبة المنجم</b></a>
-        <a href="wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
-        <a href="plane.html" class="game-card"><i>✈️</i><b>طائرة الحظ</b></a>
-        <a href="battle.html" class="game-card" style="background: #200; border-color: #f44;"><i>⚔️</i><b>ساحة التحدي</b></a>
+        <a href="./mines.html" class="game-card mines-card"><i>⛏️</i><b>لعبة المنجم</b></a>
+        <a href="./wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
+        <a href="./plane.html" class="game-card"><i>✈️</i><b>طائرة الحظ</b></a>
+        <a href="./battle.html" class="game-card" style="background: #200; border-color: #f44;"><i>⚔️</i><b>ساحة التحدي</b></a>
     </div>
 
     <div class="section-header">المكافآت اليومية</div>
     <div class="gifts-flex">
         <div class="gift-item" onclick="claim(12)">
-            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png">
-            <br><span>صندوق 12 ساعة</span>
+            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png"><br><span>12 ساعة</span>
         </div>
         <div class="gift-item" onclick="claim(24)">
-            <img src="https://cdn-icons-png.flaticon.com/512/4222/4222025.png">
-            <br><span>صندوق يومي</span>
+            <img src="https://cdn-icons-png.flaticon.com/512/4222/4222025.png"><br><span>صندوق يومي</span>
         </div>
     </div>
 
     <div class="section-header">بوابة الإيداع</div>
     <div class="deposit-box">
         <div id="qrcode"></div>
-        <div class="deposit-info">
-            <h4>الشام كاش 💳</h4>
-            <p>الوكيل المعتمد لبلاتينيوم</p>
-            <div style="background:#000; color:#fff; font-size:10px; padding:4px 10px; border-radius:5px; margin-top:5px; display:inline-block;">Admin: Platinum_Vip</div>
+        <div style="text-align: right;">
+            <h4 style="margin:0;">الشام كاش 💳</h4>
+            <p style="margin:2px 0; font-size:12px;">الوكيل المعتمد لبلاتينيوم</p>
+            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">Admin: Platinum_Vip</div>
         </div>
     </div>
 
     <script>
-        // ربط Firebase
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -115,17 +108,17 @@
         localStorage.setItem('pName', pId);
         document.getElementById('pIdDisp').innerText = pId;
 
-        // الباركود
+        // توليد الباركود
         new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Platinum_Official", width: 70, height: 70 });
 
-        // جلب الرصيد
+        // مراقبة الرصيد
         db.ref('players_logs/' + pId).on('value', (s) => {
             let score = s.exists() ? s.val().score : 0;
             document.getElementById('mainScore').innerText = score.toLocaleString();
             if(!s.exists()) db.ref('players_logs/' + pId).set({score: 0});
         });
 
-        // عداد الجاكبوت
+        // عداد الجاكبوت الوهمي
         setInterval(() => {
             let jp = document.getElementById('jpValue');
             let val = parseInt(jp.innerText.replace(/,/g, ''));
@@ -133,7 +126,7 @@
         }, 1000);
 
         function claim(h) {
-            alert("سيتم إضافة المكافأة إلى حسابك قريباً!");
+            alert("سيتم التحقق من الصندوق وإضافة الهدية قريباً!");
         }
     </script>
 </body>
