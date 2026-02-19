@@ -3,160 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM SUPREME 👑</title>
+    <title>PLATINUM ROYAL SUPREME 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --neon: #00d4ff; --win: #00ff44; --bg: #000; }
-        body { background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
+        :root { --gold: #ffcc33; --silver: #c0c0c0; --bronze: #cd7f32; --win: #00ff44; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
         
-        /* شريط الأرباح البطيء */
-        .live-winners { background: rgba(255, 204, 51, 0.1); border-bottom: 1px solid var(--gold); padding: 12px 0; overflow: hidden; white-space: nowrap; font-weight: 900; font-size: 15px; }
+        /* قسم الملف الشخصي العلوي */
+        .profile-section { background: linear-gradient(180deg, #111, #000); padding: 15px; border-bottom: 2px solid var(--gold); display: flex; align-items: center; justify-content: space-around; }
+        .rank-icon { font-size: 30px; background: rgba(255,255,255,0.05); padding: 10px; border-radius: 50%; border: 2px solid var(--bronze); transition: 0.5s; }
+        .rank-info { text-align: right; flex-grow: 1; margin-right: 15px; }
+        .rank-name { font-weight: 900; color: var(--bronze); font-size: 18px; transition: 0.5s; }
+        .exp-bar-container { width: 100%; height: 8px; background: #222; border-radius: 5px; margin-top: 5px; overflow: hidden; }
+        .exp-bar-fill { width: 0%; height: 100%; transition: 1s ease-in-out; }
+
+        /* شريط الأرباح */
+        .live-winners { background: rgba(255, 204, 51, 0.05); padding: 10px 0; overflow: hidden; white-space: nowrap; font-weight: bold; font-size: 14px; border-bottom: 1px solid #222; }
         #ticker { display: inline-block; animation: scroll 60s linear infinite; color: var(--gold); }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-        /* عداد الجائزة المتراكمة */
-        .progressive-jackpot { margin: 15px auto; width: 85%; background: #111; border-radius: 15px; padding: 10px; border: 1px solid #333; }
-        .jackpot-counter { font-size: 28px; color: var(--win); font-weight: 900; font-family: monospace; }
+        /* كرت الرصيد */
+        .balance-card { margin: 15px auto; padding: 25px 20px; width: 85%; background: radial-gradient(circle, #111, #000); border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 20px rgba(255,204,51,0.1); }
+        .balance-value { font-size: 50px; font-weight: 900; text-shadow: 0 0 15px var(--gold); }
 
-        .balance-card { margin: 15px auto; padding: 30px 20px; width: 85%; background: #0a0a0a; border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 30px rgba(255,204,51,0.1); }
-        .balance-value { font-size: 55px; font-weight: 900; text-shadow: 0 0 20px var(--gold); }
+        /* صندوق الـ 12 ساعة */
+        .gift-box { width: 80px; cursor: pointer; transition: 0.3s; animation: shake 2s infinite; margin-top: 10px; }
+        @keyframes shake { 0%, 100% { transform: rotate(0); } 10% { transform: rotate(5deg); } 20% { transform: rotate(-5deg); } }
+        #giftTimer { font-size: 13px; color: var(--gold); font-weight: bold; margin-bottom: 20px; }
 
-        /* نظام مستويات الألعاب (Levels) */
-        .game-level-tag { 
-            font-size: 10px; background: rgba(255,255,255,0.1); color: var(--gold); 
-            padding: 2px 8px; border-radius: 10px; border: 1px solid var(--gold);
-            margin-top: 5px; font-weight: bold;
-        }
+        /* الألعاب */
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 92%; margin: 0 auto 30px; }
+        .game-item { background: #111; border: 1px solid #222; border-radius: 20px; padding: 15px 5px; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; transition: 0.3s; }
+        .game-item:active { transform: scale(0.95); }
+        .game-item img { width: 45px; margin-bottom: 8px; }
+        .game-level-tag { font-size: 9px; color: var(--gold); border: 1px solid var(--gold); padding: 1px 6px; border-radius: 10px; margin-top: 5px; }
 
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 92%; margin: 0 auto 30px; }
-        .game-item { 
-            background: #111; border: 1px solid #222; border-radius: 25px; padding: 20px 10px; 
-            text-decoration: none; color: #fff; transition: 0.3s; display: flex; flex-direction: column; align-items: center;
-        }
-        .game-item img { width: 50px; height: 50px; margin-bottom: 10px; }
-        .full { grid-column: span 2; flex-direction: row; justify-content: center; gap: 15px; }
-        .online-btn { border-color: #ff4444 !important; background: linear-gradient(45deg, #111, #300); }
-        
-        .qr-section { background: rgba(255,255,255,0.03); width: 85%; margin: 20px auto; padding: 15px; border-radius: 25px; display: flex; align-items: center; justify-content: space-around; border: 1px dashed var(--gold); }
-
-        /* نافذة الربح */
-        #welcomeJackpot {
-            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            width: 85%; max-width: 360px; background: #000; border: 4px solid var(--gold);
-            border-radius: 35px; z-index: 10000; padding: 30px; box-shadow: 0 0 100px var(--gold);
-            transition: 0.6s;
-        }
+        #welcomeJackpot { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0); width: 80%; background: #000; border: 3px solid var(--gold); border-radius: 30px; z-index: 10000; padding: 25px; transition: 0.5s; box-shadow: 0 0 50px var(--gold); }
         #welcomeJackpot.show { transform: translate(-50%, -50%) scale(1); }
     </style>
 </head>
-<body onclick="startExperience()">
+<body onclick="enableAudio()">
 
     <div id="welcomeJackpot">
-        <h2 style="color: var(--gold);">BIG WIN 🔥</h2>
+        <h2 style="color: var(--gold); margin:0;">BIG WIN 🔥</h2>
         <p>مجهول ربح الآن</p>
-        <div style="font-size: 45px; color: var(--win); font-weight: 900;">100,000</div>
-        <button onclick="closePop()" style="margin-top:20px; background:var(--gold); border:none; padding:12px 40px; border-radius:15px; font-weight:900;">دخول ✅</button>
+        <div style="font-size: 40px; color: var(--win); font-weight: 900;">100,000</div>
+        <button onclick="closePop()" style="margin-top:15px; background:var(--gold); border:none; padding:10px 30px; border-radius:12px; font-weight:900;">استلام ✅</button>
+    </div>
+
+    <div class="profile-section">
+        <div class="rank-icon" id="rankIcon">🥉</div>
+        <div class="rank-info">
+            <div class="rank-name" id="rankName">المستوى: برونزي</div>
+            <div class="exp-bar-container">
+                <div class="exp-bar-fill" id="expFill"></div>
+            </div>
+        </div>
+        <div style="text-align: left;">
+            <small style="color:#666; font-size:10px;">PLAYER ID</small><br>
+            <span id="displayID" style="font-size:12px; font-weight:bold;">---</span>
+        </div>
     </div>
 
     <div class="live-winners"><div id="ticker"></div></div>
 
-    <h1 style="color: var(--gold); margin-top: 15px;">PLATINUM SUPREME</h1>
-
-    <div class="progressive-jackpot">
-        <div style="font-size: 10px; color: #888;">GLOBAL JACKPOT</div>
-        <div class="jackpot-counter" id="jackpotCounter">1,450,200.00</div>
-    </div>
-
     <div class="balance-card">
-        <div style="color: #666; font-size: 12px;">TOTAL BALANCE</div>
+        <div style="color: #666; font-size: 12px; letter-spacing: 2px;">TOTAL BALANCE</div>
         <div class="balance-value" id="pBalanceDisplay">0</div>
-        <div style="font-size: 11px; color: var(--gold); margin-top: 5px;">VIP RANK: PLATINUM ELITE</div>
     </div>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" class="gift-box" onclick="claimGift()">
+    <div id="giftTimer">جاري التحقق من الصندوق...</div>
 
     <div class="games-grid">
-        <a href="wheel.html" class="game-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png">
-            <span>عجلة الحظ</span>
-            <div class="game-level-tag">LEVEL 15</div>
-        </a>
-
-        <a href="plane.html" class="game-item">
-            <img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png">
-            <span>طائرة الحظ</span>
-            <div class="game-level-tag">LEVEL 22</div>
-        </a>
-
-        <a href="boxes.html" class="game-item full">
+        <a href="wheel.html" class="game-item"><img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png"><span>عجلة الحظ</span><div class="game-level-tag">LVL 12</div></a>
+        <a href="plane.html" class="game-item"><img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png"><span>طائرة الحظ</span><div class="game-level-tag">LVL 8</div></a>
+        <a href="boxes.html" class="game-item" style="grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;">
             <img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png">
-            <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 900;">منجم الذهب ⛏️</span>
-                <div class="game-level-tag" style="width: fit-content;">LEVEL 48 (MASTER)</div>
-            </div>
+            <span style="font-weight: 900;">منجم الذهب الملكي ⛏️</span>
+            <div class="game-level-tag">MASTER RANK</div>
         </a>
-
-        <a href="challenge.html" class="game-item full online-btn">
-            <img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png">
-            <div style="display: flex; flex-direction: column;">
-                <span style="font-weight: 900; color: #ff4444;">ساحة التحدي ⚔️</span>
-                <div class="game-level-tag" style="border-color: #ff4444; color: #ff4444; width: fit-content;">RANK: LEGENDARY</div>
-            </div>
-        </a>
-    </div>
-
-    <div class="qr-section">
-        <div id="qrcode"></div>
-        <div style="text-align: right;">
-            <b style="color:var(--gold);">DEPOSIT</b><br>
-            <small>SCAN QR CODE</small>
-        </div>
     </div>
 
     <script>
         const soundCoin = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
         const soundJackpot = new Audio('https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3');
 
-        function startExperience() { soundCoin.play().catch(()=>{}); }
+        function enableAudio() { soundCoin.play().catch(()=>{}); }
 
-        // عداد الجائزة
-        let jackpotVal = 1450200;
-        setInterval(() => {
-            jackpotVal += Math.random() * 5;
-            document.getElementById('jackpotCounter').innerText = jackpotVal.toLocaleString(undefined, {minimumFractionDigits: 2});
-        }, 100);
+        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        let pId = localStorage.getItem('pName') || "ID_" + Math.floor(Math.random()*9999);
+        localStorage.setItem('pName', pId);
+        document.getElementById('displayID').innerText = pId;
+
+        // نظام الرتب الجديد بناءً على طلبك
+        function updateRank(score) {
+            const icon = document.getElementById('rankIcon');
+            const name = document.getElementById('rankName');
+            const fill = document.getElementById('expFill');
+            
+            if (score < 50000) { // تحت الـ 50 ألف (برونزي)
+                icon.innerText = "🥉"; icon.style.borderColor = var(--bronze);
+                name.innerText = "المستوى: برونزي"; name.style.color = "#cd7f32";
+                fill.style.width = (score/50000*100) + "%"; fill.style.background = "#cd7f32";
+            } else if (score < 250000) { // بين 50 ألف و 250 ألف (فضي)
+                icon.innerText = "🥈"; icon.style.borderColor = "#c0c0c0";
+                name.innerText = "المستوى: فضي"; name.style.color = "#c0c0c0";
+                // حساب التقدم داخل الرتبة الفضية
+                let progress = ((score - 50000) / (250000 - 50000)) * 100;
+                fill.style.width = progress + "%"; fill.style.background = "#c0c0c0";
+            } else { // فوق الـ 250 ألف (ذهبي)
+                icon.innerText = "🥇"; icon.style.borderColor = "#ffcc33";
+                name.innerText = "المستوى: ذهبي الملكي"; name.style.color = "#ffcc33";
+                fill.style.width = "100%"; fill.style.background = "#ffcc33";
+                fill.style.boxShadow = "0 0 15px #ffcc33";
+            }
+        }
+
+        // نظام صندوق الجائزة 50 ليرة كل 12 ساعة
+        function claimGift() {
+            const lastClaim = localStorage.getItem('lastClaim') || 0;
+            const now = Date.now();
+            const twelveHours = 12 * 60 * 60 * 1000;
+
+            if (now - lastClaim >= twelveHours) {
+                db.ref('players_logs/' + pId).once('value', (s) => {
+                    let current = s.exists() ? s.val().score : 0;
+                    db.ref('players_logs/' + pId).update({ score: current + 50 });
+                    localStorage.setItem('lastClaim', now);
+                    alert("✅ تم إضافة 50 ليرة لرصيدك! عد بعد 12 ساعة.");
+                    soundCoin.play();
+                });
+            } else {
+                alert("⏳ الصندوق فارغ حالياً، انتظر انتهاء الوقت.");
+            }
+        }
+
+        function updateGiftTimer() {
+            const lastClaim = localStorage.getItem('lastClaim') || 0;
+            const now = Date.now();
+            const twelveHours = 12 * 60 * 60 * 1000;
+            const diff = twelveHours - (now - lastClaim);
+
+            if (diff <= 0) {
+                document.getElementById('giftTimer').innerText = "الصندوق متاح الآن! 🎁";
+                document.getElementById('giftTimer').style.color = "#00ff44";
+            } else {
+                const hours = Math.floor(diff / (1000 * 60 * 60));
+                const mins = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+                document.getElementById('giftTimer').innerText = `يفتح بعد: ${hours}س و ${mins}د`;
+                document.getElementById('giftTimer').style.color = "#ffcc33";
+            }
+        }
+        setInterval(updateGiftTimer, 1000);
 
         window.onload = function() {
             setTimeout(() => { document.getElementById('welcomeJackpot').classList.add('show'); soundJackpot.play().catch(()=>{}); }, 1000);
-            new QRCode(document.getElementById("qrcode"), { text: "be066ca49abcf3d1ac79a65895aecb5e", width: 65, height: 65 });
             startTicker();
         };
 
         function closePop() { document.getElementById('welcomeJackpot').classList.remove('show'); soundCoin.play(); }
 
         function startTicker() {
-            const wins = ["ربح +5,000💰", "سحب +12,000💸", "فوز X10🔥"];
+            const wins = ["ربح +5,000💰", "سحب ناجح💸", "فوز X10🔥"];
             let content = "";
             for(let i=0; i<30; i++) {
-                if (i % 5 === 0) content += ` • <span style="color:#fff; background:red; padding:2px 10px; border-radius:10px;">👑 مجهول ربح 100,000 👑</span> `;
-                else content += ` • USER_${Math.floor(Math.random()*999)}: ${wins[Math.floor(Math.random()*wins.length)]} `;
+                if (i % 6 === 0) content += ` • <span style="color:#fff; background:red; padding:1px 8px; border-radius:5px;">👑 مجهول ربح 100,000 👑</span> `;
+                else content += ` • USER_${Math.floor(Math.random()*99)}: ${wins[Math.floor(Math.random()*wins.length)]} `;
             }
             document.getElementById('ticker').innerHTML = content + content;
         }
 
-        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-        let pId = localStorage.getItem('pName') || "ID_" + Math.floor(Math.random()*9999);
-        localStorage.setItem('pName', pId);
-
         db.ref('players_logs/' + pId).on('value', (s) => {
-            if (s.exists()) document.getElementById('pBalanceDisplay').innerText = s.val().score.toLocaleString();
-            else db.ref('players_logs/' + pId).set({ score: 0 });
+            if (s.exists()) {
+                const score = s.val().score;
+                document.getElementById('pBalanceDisplay').innerText = score.toLocaleString();
+                updateRank(score);
+            } else { db.ref('players_logs/' + pId).set({ score: 0 }); }
         });
     </script>
 </body>
 </html>
-
