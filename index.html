@@ -3,83 +3,100 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>منصة الملوك الملكية 👑</title>
+    <title>منصة الملوك PLATINUM 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --challenge-red: #ff4444; --glass-border: rgba(255, 255, 255, 0.1); --card-bg: rgba(255, 255, 255, 0.05); }
-        body { background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
-        h1 { font-size: 26px; font-weight: 900; margin-bottom: 25px; background: linear-gradient(to bottom, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .user-card { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; width: 100%; max-width: 380px; margin-bottom: 20px; text-align: center; }
-        #pNameDisplay { color: var(--gold); font-weight: bold; }
-        .balance-value { font-size: 40px; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.2); }
-        .recharge-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 20px; padding: 12px 18px; width: 100%; max-width: 380px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; }
-        #qrcode { background: #fff; padding: 5px; border-radius: 8px; }
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 380px; }
-        .game-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 22px; padding: 20px; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; transition: 0.3s ease; }
-        .game-card img { width: 50px; height: 50px; margin-bottom: 10px; }
-        .game-card span { font-size: 14px; font-weight: bold; }
-        .gold-mine-card { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; background: linear-gradient(90deg, rgba(255,204,51,0.1), rgba(0,0,0,0.4)); border: 1px solid rgba(255,204,51,0.3); }
-        .challenge-card { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; background: linear-gradient(45deg, #440000, #110000); border: 1px solid var(--challenge-red); margin-top: 5px; box-shadow: 0 0 15px rgba(255, 68, 68, 0.1); }
-        .game-card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
-
-        /* ستايل الإشعار المحسن */
-        #adminNotif {
-            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
-            width: 85%; max-width: 320px; background: #000; border: 2px solid var(--gold);
-            border-radius: 20px; padding: 15px; z-index: 9999; text-align: center;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255,204,51,0.3);
-            transition: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+        
+        :root {
+            --gold: #ffcc33;
+            --neon-blue: #00d4ff;
+            --glass: rgba(255, 255, 255, 0.07);
         }
-        #adminNotif.active { top: 30px; }
+
+        body { 
+            background: #050505; color: #fff; font-family: 'Cairo', sans-serif; 
+            margin: 0; padding: 0; display: flex; flex-direction: column; align-items: center;
+            min-height: 100vh; overflow-x: hidden;
+        }
+
+        .bg-animate { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #000 100%); z-index: -1; }
+
+        /* شريط الإغراء المتحرك */
+        .live-winners { width: 100%; background: rgba(255, 204, 51, 0.1); border-bottom: 1px solid var(--gold); padding: 5px 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
+        .scrolling-text { display: inline-block; animation: scroll 20s linear infinite; color: var(--gold); }
+        @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        h1 { font-size: 30px; font-weight: 900; background: linear-gradient(to right, #fff, var(--gold), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 20px 0; }
+
+        /* كرت الرصيد المتوهج */
+        .balance-card {
+            background: linear-gradient(135deg, rgba(255,255,255,0.1), rgba(255,255,255,0.01));
+            backdrop-filter: blur(15px); border: 1px solid rgba(255,215,0,0.3);
+            border-radius: 30px; padding: 25px; width: 85%; max-width: 400px;
+            text-align: center; box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            margin-bottom: 25px; position: relative;
+        }
+        .balance-value { font-size: 45px; font-weight: 900; text-shadow: 0 0 15px var(--gold); transition: 0.3s; }
+        .winning-anim { animation: pulse-gold 0.5s infinite; }
+        @keyframes pulse-gold { 0% { transform: scale(1); } 50% { transform: scale(1.1); color: #fff; } 100% { transform: scale(1); } }
+
+        /* شبكة الألعاب */
+        .games-container { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 90%; max-width: 420px; padding-bottom: 30px; }
+        .game-box {
+            background: var(--glass); border: 1px solid rgba(255,255,255,0.1); border-radius: 25px; padding: 20px; text-decoration: none;
+            display: flex; flex-direction: column; align-items: center; transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .game-box:active { transform: scale(0.95); }
+        .game-box img { width: 55px; height: 55px; margin-bottom: 8px; }
+        .game-box span { font-weight: bold; font-size: 14px; color: #eee; }
+        .win-tag { position: absolute; top: 10px; right: -20px; background: #ff4444; color: #fff; font-size: 9px; padding: 2px 25px; transform: rotate(45deg); font-weight: bold; }
+        .full-width { grid-column: span 2; flex-direction: row; gap: 20px; }
+
+        #qrcode { background: #fff; padding: 5px; border-radius: 10px; box-shadow: 0 0 10px #fff; }
     </style>
 </head>
 <body>
 
-    <div id="adminNotif">
-        <div style="font-size: 30px;">🎁</div>
-        <div style="color: var(--gold); font-weight: 900; font-size: 18px;">منحة ملكية!</div>
-        <div id="notifMsg" style="margin-top: 5px; font-size: 14px; font-weight: bold;"></div>
-        <button onclick="closeNotif()" style="margin-top:10px; background:var(--gold); border:none; padding:5px 15px; border-radius:10px; font-weight:bold; cursor:pointer;">استلام ✅</button>
-    </div>
+    <div class="bg-animate"></div>
 
-    <h1>الملوك PLATFORM</h1>
-    <div class="user-card">
-        <div style="font-size: 14px; color: #aaa;">الملك: <span id="pNameDisplay">...</span></div>
-        <div class="balance-value"><span id="pBalanceDisplay">0</span> 💰</div>
-    </div>
-
-    <div class="recharge-box">
-        <div style="text-align: right;">
-            <b style="color:var(--gold); display:block; font-size:15px;">شحن رصيد سريع</b>
-            <span style="font-size: 11px; color: #888;">امسح الكود عبر شام كاش</span>
+    <div class="live-winners">
+        <div class="scrolling-text">
+            🔥 مبروك "أحمد" ربح 50,000 -- 💰 الملك "خالد" سحب 120,000 -- 💎 "سارة" فازت بالجائزة الكبرى -- 🚀 "محمد" ضاعف رصيده الآن!
         </div>
-        <div id="qrcode"></div>
     </div>
 
-    <div class="games-grid">
-        <a href="wheel.html" class="game-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png" alt="wheel">
-            <span>عجلة الحظ</span>
-        </a>
-        <a href="plane.html" class="game-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png" alt="plane">
-            <span>طائرة الحظ</span>
-        </a>
-        <a href="boxes.html" class="game-card gold-mine-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png" alt="gold">
-            <span>منجم الذهب الملكي ⛏️</span>
-        </a>
-        <a href="challenge.html" class="game-card challenge-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png" alt="PvP">
-            <span>ساحة التحدي ⚔️ (PvP)</span>
-        </a>
+    <h1>PLATINUM ROYAL</h1>
+
+    <div class="balance-card" id="bCard">
+        <div style="font-size: 13px; color: #ccc;">الرصيد الملكي</div>
+        <div class="balance-value" id="pBalanceDisplay">0</div>
+        <div style="font-size: 11px; color: var(--gold);">الملك: <span id="pNameDisplay">...</span></div>
+    </div>
+
+    <div style="width: 90%; max-width: 420px; display: flex; align-items: center; justify-content: space-around; margin-bottom: 20px; background: rgba(255,255,255,0.03); padding: 10px; border-radius: 15px;">
+        <div id="qrcode"></div>
+        <div style="text-align: right;">
+            <b style="color:var(--gold);">شحن رصيد</b><br>
+            <small style="color:#777;">عبر شام كاش</small>
+        </div>
+    </div>
+
+    <div class="games-container">
+        <a href="wheel.html" class="game-box"><div class="win-tag">HOT</div><img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png"><span>عجلة الحظ</span></a>
+        <a href="plane.html" class="game-box"><div class="win-tag" style="background:var(--neon-blue)">X1000</div><img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png"><span>طائرة الحظ</span></a>
+        <a href="boxes.html" class="game-box full-width"><img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png"><span>منجم الذهب الملكي ⛏️</span></a>
+        <a href="challenge.html" class="game-box full-width" style="border-color: #ff4444;"><img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png"><span>ساحة التحدي ⚔️</span></a>
     </div>
 
     <script>
+        // ملفات الصوت (روابط خارجية لعملات حقيقية)
+        const coinSound = new Audio('https://www.soundjay.com/misc/sounds/coins-spilled-1.mp3');
+        const singleCoin = new Audio('https://www.zapsplat.com/wp-content/uploads/2015/sound-effects-one-up-games/one_up_games_casino_slot_machine_coins_payout_win_short_001.mp3');
+
         const firebaseConfig = { 
             apiKey: "AIzaSyDzCF3dG2qbWcaUdehA8NInJLYkQaYkfcc",
             databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" 
@@ -87,56 +104,37 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        window.onload = function() {
-            new QRCode(document.getElementById("qrcode"), {
-                text: "be066ca49abcf3d1ac79a65895aecb5e",
-                width: 65, height: 65, colorDark : "#000000", colorLight : "#ffffff"
-            });
-        };
-
-        // إدارة اسم اللاعب
-        let pName = localStorage.getItem('pName');
-        if (!pName) {
-            pName = prompt("ادخل اسمك الملكي:");
-            if (!pName || pName.trim() === "") pName = "لاعب_" + Math.floor(Math.random() * 9000 + 1000);
-            localStorage.setItem('pName', pName);
-        }
+        let pName = localStorage.getItem('pName') || prompt("ادخل اسمك الملكي:");
+        if (!pName) pName = "KING_" + Math.floor(Math.random()*999);
+        localStorage.setItem('pName', pName);
         document.getElementById('pNameDisplay').innerText = pName;
 
-        // تحديث الرصيد تلقائياً للاعب الحالي
+        let lastScore = -1;
+
         db.ref('players_logs/' + pName).on('value', (s) => {
-            if (!s.exists()) {
-                db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
+            if (s.exists()) {
+                const newScore = s.val().score;
+                const display = document.getElementById('pBalanceDisplay');
+                
+                // إذا زاد الرصيد (شحن أو ربح)
+                if (lastScore !== -1 && newScore > lastScore) {
+                    coinSound.play(); // تشغيل صوت العملات
+                    display.classList.add('winning-anim'); // إضافة تأثير نبض
+                    setTimeout(() => display.classList.remove('winning-anim'), 1000);
+                }
+                
+                display.innerText = newScore.toLocaleString();
+                lastScore = newScore;
             } else {
-                document.getElementById('pBalanceDisplay').innerText = s.val().score.toLocaleString();
+                db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
             }
         });
 
-        // --- نظام الإشعارات الذكي (Targeted Notification) ---
-        let lastNotifTime = Date.now(); // لمنع ظهور الرسائل القديمة عند فتح الصفحة
-
-        db.ref('global_announcement').on('value', (snapshot) => {
-            const data = snapshot.val();
-            const myCurrentName = localStorage.getItem('pName');
-
-            // الشرط: الرسالة موجودة + موجهة لاسمي + الوقت جديد (بعد فتحي للصفحة)
-            if (data && data.target === myCurrentName && data.time > lastNotifTime) {
-                lastNotifTime = data.time; // تحديث الوقت لعدم تكرار الإشعار
-                
-                const box = document.getElementById('adminNotif');
-                const msg = document.getElementById('notifMsg');
-                
-                msg.innerText = data.text;
-                box.classList.add('active');
-                
-                // هز الهاتف للتنبيه
-                if (window.navigator.vibrate) window.navigator.vibrate(200);
-            }
-        });
-
-        function closeNotif() {
-            document.getElementById('adminNotif').classList.remove('active');
-        }
+        window.onload = function() {
+            new QRCode(document.getElementById("qrcode"), { text: "be066ca49abcf3d1ac79a65895aecb5e", width: 60, height: 60 });
+            // تشغيل صوت خفيف عند الدخول كترحيب (اختياري)
+            document.body.onclick = () => { coinSound.volume = 0.5; }; 
+        };
     </script>
 </body>
 </html>
