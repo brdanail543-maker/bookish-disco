@@ -10,103 +10,43 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        
-        :root {
-            --gold: #ffcc33;
-            --challenge-red: #ff4444;
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --card-bg: rgba(255, 255, 255, 0.05);
-        }
-
-        body { 
-            background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%);
-            color: #fff; 
-            font-family: 'Cairo', sans-serif; 
-            margin: 0; padding: 20px; 
-            display: flex; flex-direction: column; align-items: center;
-            min-height: 100vh;
-        }
-
-        h1 { 
-            font-size: 26px; font-weight: 900; margin-bottom: 25px;
-            background: linear-gradient(to bottom, #fff, var(--gold));
-            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-        }
-
-        /* كرت المستخدم */
-        .user-card { 
-            background: var(--card-bg); backdrop-filter: blur(10px);
-            border: 1px solid var(--glass-border); border-radius: 24px; 
-            padding: 20px; width: 100%; max-width: 380px; 
-            margin-bottom: 20px; text-align: center;
-        }
-
+        :root { --gold: #ffcc33; --challenge-red: #ff4444; --glass-border: rgba(255, 255, 255, 0.1); --card-bg: rgba(255, 255, 255, 0.05); }
+        body { background: radial-gradient(circle at top, #1a1a1a 0%, #000 100%); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow-x: hidden; }
+        h1 { font-size: 26px; font-weight: 900; margin-bottom: 25px; background: linear-gradient(to bottom, #fff, var(--gold)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .user-card { background: var(--card-bg); backdrop-filter: blur(10px); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; width: 100%; max-width: 380px; margin-bottom: 20px; text-align: center; }
         #pNameDisplay { color: var(--gold); font-weight: bold; }
         .balance-value { font-size: 40px; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.2); }
-
-        /* باركود شام كاش */
-        .recharge-box {
-            background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border);
-            border-radius: 20px; padding: 12px 18px; width: 100%; max-width: 380px;
-            margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between;
-        }
-
+        .recharge-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--glass-border); border-radius: 20px; padding: 12px 18px; width: 100%; max-width: 380px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; }
         #qrcode { background: #fff; padding: 5px; border-radius: 8px; }
-
-        /* شبكة الألعاب */
-        .games-grid { 
-            display: grid; grid-template-columns: 1fr 1fr; 
-            gap: 15px; width: 100%; max-width: 380px; 
-        }
-
-        .game-card { 
-            background: var(--card-bg); border: 1px solid var(--glass-border);
-            border-radius: 22px; padding: 20px; text-decoration: none; 
-            color: #fff; display: flex; flex-direction: column; 
-            align-items: center; transition: 0.3s ease;
-        }
-
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 100%; max-width: 380px; }
+        .game-card { background: var(--card-bg); border: 1px solid var(--glass-border); border-radius: 22px; padding: 20px; text-decoration: none; color: #fff; display: flex; flex-direction: column; align-items: center; transition: 0.3s ease; }
         .game-card img { width: 50px; height: 50px; margin-bottom: 10px; }
         .game-card span { font-size: 14px; font-weight: bold; }
-
-        .gold-mine-card { 
-            grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;
-            background: linear-gradient(90deg, rgba(255,204,51,0.1), rgba(0,0,0,0.4));
-            border: 1px solid rgba(255,204,51,0.3);
-        }
-        .gold-mine-card span { font-size: 18px; color: var(--gold); }
-
-        .challenge-card {
-            grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px;
-            background: linear-gradient(45deg, #440000, #110000);
-            border: 1px solid var(--challenge-red); margin-top: 5px;
-            box-shadow: 0 0 15px rgba(255, 68, 68, 0.1);
-        }
-        .challenge-card span { color: var(--challenge-red); font-size: 18px; font-weight: 900; }
-
+        .gold-mine-card { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; background: linear-gradient(90deg, rgba(255,204,51,0.1), rgba(0,0,0,0.4)); border: 1px solid rgba(255,204,51,0.3); }
+        .challenge-card { grid-column: span 2; flex-direction: row; justify-content: center; gap: 20px; background: linear-gradient(45deg, #440000, #110000); border: 1px solid var(--challenge-red); margin-top: 5px; box-shadow: 0 0 15px rgba(255, 68, 68, 0.1); }
         .game-card:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
-        .footer-text { margin-top: 30px; color: #444; font-size: 11px; }
 
-        /* ستايل إشعار الإدارة الجديد */
-        #adminNotification {
-            position: fixed; top: -100px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 350px; background: rgba(0, 0, 0, 0.9);
-            border: 2px solid var(--gold); border-radius: 15px; padding: 15px;
-            z-index: 10000; transition: 0.5s ease-in-out; text-align: center;
-            box-shadow: 0 0 20px rgba(255, 204, 51, 0.4);
+        /* ستايل الإشعار المحسن */
+        #adminNotif {
+            position: fixed; top: -150px; left: 50%; transform: translateX(-50%);
+            width: 85%; max-width: 320px; background: #000; border: 2px solid var(--gold);
+            border-radius: 20px; padding: 15px; z-index: 9999; text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8), 0 0 20px rgba(255,204,51,0.3);
+            transition: 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
-        #adminNotification.show { top: 20px; }
+        #adminNotif.active { top: 30px; }
     </style>
 </head>
 <body>
 
-    <div id="adminNotification">
-        <div style="color: var(--gold); font-weight: 900; font-size: 18px; margin-bottom: 5px;">🎁 إشعار ملكي</div>
-        <div id="notifText" style="font-size: 14px; color: #fff;"></div>
+    <div id="adminNotif">
+        <div style="font-size: 30px;">🎁</div>
+        <div style="color: var(--gold); font-weight: 900; font-size: 18px;">منحة ملكية!</div>
+        <div id="notifMsg" style="margin-top: 5px; font-size: 14px; font-weight: bold;"></div>
+        <button onclick="closeNotif()" style="margin-top:10px; background:var(--gold); border:none; padding:5px 15px; border-radius:10px; font-weight:bold;">تم</button>
     </div>
 
     <h1>الملوك PLATFORM</h1>
-
     <div class="user-card">
         <div style="font-size: 14px; color: #aaa;">الملك: <span id="pNameDisplay">...</span></div>
         <div class="balance-value"><span id="pBalanceDisplay">0</span> 💰</div>
@@ -125,24 +65,19 @@
             <img src="https://cdn-icons-png.flaticon.com/512/8101/8101831.png" alt="wheel">
             <span>عجلة الحظ</span>
         </a>
-        
         <a href="plane.html" class="game-card">
             <img src="https://cdn-icons-png.flaticon.com/512/1356/1356479.png" alt="plane">
             <span>طائرة الحظ</span>
         </a>
-
         <a href="boxes.html" class="game-card gold-mine-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png" alt="gold-mine">
+            <img src="https://cdn-icons-png.flaticon.com/512/2415/2415302.png" alt="gold">
             <span>منجم الذهب الملكي ⛏️</span>
         </a>
-
         <a href="challenge.html" class="game-card challenge-card">
-            <img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png" alt="challenge">
+            <img src="https://cdn-icons-png.flaticon.com/512/9344/9344211.png" alt="PvP">
             <span>ساحة التحدي ⚔️ (PvP)</span>
         </a>
     </div>
-
-    <div class="footer-text">DESIGN BY ROYAL TEAM V2.5</div>
 
     <script>
         const firebaseConfig = { 
@@ -155,43 +90,42 @@
         window.onload = function() {
             new QRCode(document.getElementById("qrcode"), {
                 text: "be066ca49abcf3d1ac79a65895aecb5e",
-                width: 65, height: 65, colorDark : "#000000", colorLight : "#ffffff", correctLevel : QRCode.CorrectLevel.H
+                width: 65, height: 65, colorDark : "#000000", colorLight : "#ffffff"
             });
         };
 
-        let pName = localStorage.getItem('pName');
-        if (!pName) {
-            pName = prompt("ادخل اسمك الملكي:");
-            if (!pName || pName.trim() === "") pName = "لاعب_" + Math.floor(Math.random() * 9000 + 1000);
-            localStorage.setItem('pName', pName);
-        }
+        let pName = localStorage.getItem('pName') || prompt("ادخل اسمك الملكي:") || "لاعب_" + Math.floor(Math.random() * 9000);
+        localStorage.setItem('pName', pName);
         document.getElementById('pNameDisplay').innerText = pName;
 
-        const playerRef = db.ref('players_logs/' + pName);
-        playerRef.on('value', (snapshot) => {
-            if (!snapshot.exists()) {
-                playerRef.set({ score: 0, lastLogin: new Date().getTime() });
+        // تحديث الرصيد
+        db.ref('players_logs/' + pName).on('value', (s) => {
+            if (!s.exists()) {
+                db.ref('players_logs/' + pName).set({ score: 0, lastLogin: Date.now() });
             } else {
-                document.getElementById('pBalanceDisplay').innerText = snapshot.val().score.toLocaleString();
+                document.getElementById('pBalanceDisplay').innerText = s.val().score.toLocaleString();
             }
         });
 
-        // --- كود استقبال إشعارات الإدارة والهدية ---
+        // --- نظام استقبال الإشعارات الفوري ---
+        let lastNotifTime = 0;
         db.ref('global_announcement').on('value', (snapshot) => {
             const data = snapshot.val();
-            if (data) {
-                const notifBox = document.getElementById('adminNotification');
-                const notifText = document.getElementById('notifText');
+            // التأكد أن الرسالة جديدة ولم تظهر من قبل باستخدام الوقت
+            if (data && data.time > lastNotifTime) {
+                lastNotifTime = data.time;
+                const box = document.getElementById('adminNotif');
+                document.getElementById('notifMsg').innerText = data.text;
+                box.classList.add('active');
                 
-                notifText.innerText = data.text;
-                notifBox.classList.add('show');
-
-                // إخفاء الإشعار تلقائياً بعد 7 ثواني
-                setTimeout(() => {
-                    notifBox.classList.remove('show');
-                }, 7000);
+                // صوت تنبيه بسيط (اختياري)
+                try { window.navigator.vibrate(200); } catch(e){}
             }
         });
+
+        function closeNotif() {
+            document.getElementById('adminNotif').classList.remove('active');
+        }
     </script>
 </body>
 </html>
