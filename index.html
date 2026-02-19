@@ -10,14 +10,23 @@
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --neon: #00d4ff; --win: #00ff44; }
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; }
+        :root { --gold: #ffcc33; --neon: #00d4ff; --win: #00ff44; --bg: #000; --card: #0a0a0a; }
+        body { background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; text-align: center; transition: 0.5s; }
         
-        /* شريط الأرباح - بطيء جداً (60 ثانية) */
+        /* 1. نظام شريط الأرباح البطيء */
         .live-winners { background: rgba(255, 204, 51, 0.1); border-bottom: 1px solid var(--gold); padding: 12px 0; overflow: hidden; white-space: nowrap; font-weight: 900; font-size: 15px; }
         #ticker { display: inline-block; animation: scroll 60s linear infinite; color: var(--gold); }
         .jackpot-text { color: #fff; background: linear-gradient(90deg, #ff0000, #ffcc33); padding: 3px 15px; border-radius: 20px; box-shadow: 0 0 15px var(--gold); margin: 0 15px; }
         @keyframes scroll { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+
+        /* 2. عداد الجائزة الكبرى المتراكمة */
+        .progressive-jackpot { margin: 15px 0; background: linear-gradient(to bottom, #222, #000); border-radius: 15px; padding: 10px; border: 1px solid #333; }
+        .jackpot-counter { font-size: 28px; color: var(--win); font-weight: 900; font-family: monospace; letter-spacing: 2px; }
+
+        /* 3. نظام المستويات VIP */
+        .vip-badge { font-size: 12px; background: var(--gold); color: #000; padding: 2px 10px; border-radius: 5px; font-weight: 900; margin-bottom: 5px; display: inline-block; }
+        .level-bar { width: 100%; height: 6px; background: #222; border-radius: 10px; margin-top: 10px; overflow: hidden; }
+        .level-progress { width: 65%; height: 100%; background: var(--gold); box-shadow: 0 0 10px var(--gold); }
 
         /* نافذة الربح عند الفتح */
         #welcomeJackpot {
@@ -28,13 +37,22 @@
         }
         #welcomeJackpot.show { transform: translate(-50%, -50%) scale(1); }
 
-        .balance-card { margin: 25px auto; padding: 40px 20px; width: 85%; background: #0a0a0a; border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 30px rgba(255,204,51,0.1); }
-        .balance-value { font-size: 60px; font-weight: 900; text-shadow: 0 0 20px var(--gold); }
+        .balance-card { margin: 10px auto; padding: 30px 20px; width: 85%; background: var(--card); border: 2px solid var(--gold); border-radius: 40px; box-shadow: 0 0 30px rgba(255,204,51,0.1); }
+        .balance-value { font-size: 55px; font-weight: 900; text-shadow: 0 0 20px var(--gold); }
         
-        /* شبكة الألعاب */
+        /* 4. صندوق الحظ اليومي */
+        .lucky-box { position: fixed; bottom: 20px; right: 20px; width: 60px; height: 60px; animation: bounce 2s infinite; cursor: pointer; z-index: 999; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-15px) rotate(10deg); } }
+
+        /* إشعارات جانبية */
+        .side-notif { position: fixed; left: -200px; bottom: 100px; background: rgba(0,0,0,0.9); border-right: 3px solid var(--win); padding: 10px; border-radius: 0 10px 10px 0; font-size: 11px; transition: 0.5s; z-index: 1000; }
+
+        /* وضع التخفي / تغيير الألوان */
+        .theme-switch { position: absolute; top: 70px; left: 15px; background: #222; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--gold); cursor: pointer; }
+
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; width: 92%; margin: 0 auto 30px; }
         .game-item { background: #111; border: 1px solid #222; border-radius: 25px; padding: 20px 10px; text-decoration: none; color: #fff; transition: 0.3s; }
-        .game-item img { width: 55px; height: 55px; margin-bottom: 10px; }
+        .game-item img { width: 50px; height: 50px; margin-bottom: 10px; }
         .full { grid-column: span 2; display: flex; align-items: center; justify-content: center; gap: 15px; }
         .online-btn { border-color: #ff4444 !important; background: linear-gradient(45deg, #111, #300); }
         
@@ -42,6 +60,12 @@
     </style>
 </head>
 <body onclick="startExperience()">
+
+    <div id="sideNotif" class="side-notif">✅ إيداع جديد بقيمة 25,000</div>
+
+    <div class="theme-switch" onclick="toggleTheme()">🎨</div>
+
+    <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png" class="lucky-box" onclick="openMysteryBox()">
 
     <div id="welcomeJackpot">
         <div style="font-size: 50px;">🔥</div>
@@ -53,11 +77,19 @@
 
     <div class="live-winners"><div id="ticker"></div></div>
 
-    <h1 style="letter-spacing: 5px; color: var(--gold); margin-top: 20px;">PLATINUM</h1>
+    <h1 style="letter-spacing: 5px; color: var(--gold); margin-top: 15px; font-size: 24px;">PLATINUM SUPREME</h1>
+
+    <div class="progressive-jackpot">
+        <div style="font-size: 10px; color: #888;">GLOBAL PROGRESSIVE JACKPOT</div>
+        <div class="jackpot-counter" id="jackpotCounter">1,450,200.00</div>
+    </div>
 
     <div class="balance-card">
-        <div style="color: #666; font-size: 14px;">TOTAL BALANCE</div>
+        <div class="vip-badge">VIP LEVEL: PLATINUM</div>
+        <div style="color: #666; font-size: 12px;">TOTAL BALANCE</div>
         <div class="balance-value" id="pBalanceDisplay">0</div>
+        <div class="level-bar"><div class="level-progress"></div></div>
+        <div style="font-size: 10px; color: var(--gold); margin-top: 5px; text-align: left;">Next Reward: 500,000 Credits</div>
     </div>
 
     <div class="qr-section">
@@ -79,18 +111,43 @@
         const soundCoin = new Audio('https://assets.mixkit.co/active_storage/sfx/2019/2019-preview.mp3');
         const soundJackpot = new Audio('https://assets.mixkit.co/active_storage/sfx/2016/2016-preview.mp3');
 
-        // دالة تفعيل الصوت والنافذة عند أول ضغطة
-        function startExperience() {
-            soundCoin.play().catch(()=>{});
+        function startExperience() { soundCoin.play().catch(()=>{}); }
+
+        // 2. تحديث عداد الجائزة المتراكمة
+        let jackpotVal = 1450200;
+        setInterval(() => {
+            jackpotVal += Math.random() * 5;
+            document.getElementById('jackpotCounter').innerText = jackpotVal.toLocaleString(undefined, {minimumFractionDigits: 2});
+        }, 100);
+
+        // 4. صندوق الحظ
+        function openMysteryBox() {
+            alert("صندوق الحظ متاح بعد 3 ساعات! استمر في اللعب لفتحه مجاناً 🎁");
         }
 
-        // إظهار نافذة "مجهول ربح" فوراً بعد 1 ثانية من التحميل
+        // 5. نظام الإشعارات الجانبية
+        function showSideNotif() {
+            const notif = document.getElementById('sideNotif');
+            const msgs = ["✅ إيداع جديد: 10,000", "🔥 مجهول ضاعف رصيده X10", "💎 سحب ناجح بقيمة 50,000", "🎉 رابح جديد في المنجم"];
+            notif.innerText = msgs[Math.floor(Math.random()*msgs.length)];
+            notif.style.left = "0px";
+            setTimeout(() => { notif.style.left = "-250px"; }, 3000);
+        }
+        setInterval(showSideNotif, 8000);
+
+        // تبديل الثيم
+        let isDark = true;
+        function toggleTheme() {
+            isDark = !isDark;
+            document.body.style.background = isDark ? "#000" : "#001a33";
+            alert("تم تفعيل وضع النيون الملكي 💠");
+        }
+
         window.onload = function() {
             setTimeout(() => {
                 document.getElementById('welcomeJackpot').classList.add('show');
                 soundJackpot.play().catch(()=>{});
             }, 1000);
-            
             new QRCode(document.getElementById("qrcode"), { text: "be066ca49abcf3d1ac79a65895aecb5e", width: 65, height: 65 });
             startTicker();
         };
