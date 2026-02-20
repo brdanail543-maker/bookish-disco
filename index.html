@@ -2,156 +2,163 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL | الواجهة الملكية 👑</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>PLATINUM ROYAL | المحفظة الملكية 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
         
-        :root { --gold: #d4af37; --bg: #000; --card: #111; }
+        :root { --gold: #d4af37; --bg: #000; --card: #111; --green: #00ff44; }
 
         body { 
             background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; 
             margin: 0; padding: 0; overflow-x: hidden; text-align: center;
         }
 
-        /* هيدر الرصيد */
-        .top-nav {
-            padding: 30px 20px; background: linear-gradient(to bottom, #151515, #000);
-            border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100;
+        /* هيدر الرصيد الفخم */
+        .balance-header {
+            padding: 40px 20px;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            border-bottom: 2px solid var(--gold);
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
-        .balance-title { font-size: 14px; color: #888; letter-spacing: 1px; }
-        .main-balance { 
+        .bal-label { font-size: 14px; color: #888; margin-bottom: 5px; display: block; }
+        .bal-value { 
             font-size: 55px; color: var(--gold); font-weight: 900; 
-            text-shadow: 0 0 20px rgba(212,175,55,0.4); margin: 5px 0;
+            text-shadow: 0 0 25px rgba(212,175,55,0.5); letter-spacing: -1px;
         }
-        #pNameDisp { font-size: 16px; color: #555; border: 1px solid #222; padding: 4px 15px; border-radius: 20px; display: inline-block; }
+
+        /* رابط شام كاش المتحرك */
+        .sham-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            margin: 20px auto; padding: 12px 25px; width: 85%;
+            background: rgba(0, 255, 68, 0.1); border: 1px solid var(--green);
+            border-radius: 50px; color: var(--green); text-decoration: none;
+            font-weight: bold; font-size: 15px; transition: 0.3s;
+            animation: pulse-green 2s infinite;
+        }
+        @keyframes pulse-green {
+            0% { box-shadow: 0 0 0 0 rgba(0, 255, 68, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(0, 255, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(0, 255, 68, 0); }
+        }
 
         /* شبكة الأيقونات المتحركة */
         .games-grid {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
-            padding: 30px; max-width: 500px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+            padding: 20px; max-width: 450px; margin: 0 auto;
         }
 
-        .game-item {
-            position: relative; background: var(--card); border-radius: 30px;
-            padding: 35px 10px; border: 1px solid #1a1a1a;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            cursor: pointer; overflow: hidden;
+        .game-card {
+            background: var(--card); border-radius: 25px;
+            padding: 30px 10px; border: 1px solid #222;
+            transition: 0.3s; cursor: pointer; position: relative;
         }
 
-        /* تأثير الحركة للأيقونات */
-        .game-item i {
-            font-size: 65px; display: block; margin-bottom: 15px;
-            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+        .game-card i {
+            font-size: 55px; display: block; margin-bottom: 12px;
             animation: float 3s ease-in-out infinite;
         }
-
-        .game-item:nth-child(2) i { animation-delay: 0.5s; }
-        .game-item:nth-child(3) i { animation-delay: 1s; }
-        .game-item:nth-child(4) i { animation-delay: 1.5s; }
-
         @keyframes float {
             0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-15px); }
+            50% { transform: translateY(-12px); }
         }
 
-        .game-item b { font-size: 18px; color: var(--gold); display: block; letter-spacing: 1px; }
+        .game-card b { font-size: 16px; color: var(--gold); display: block; }
+        .game-card:active { transform: scale(0.92); border-color: var(--gold); }
 
-        /* تأثير الضوء عند اللمس */
-        .game-item:active { transform: scale(0.9); border-color: var(--gold); background: #1a1a1a; }
-        .game-item::after {
-            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-            background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
-            opacity: 0; transition: 0.3s;
-        }
-        .game-item:hover::after { opacity: 1; }
-
-        /* شريط سفلي فخم */
-        .footer-bar { padding: 40px 20px; color: #444; font-size: 12px; }
-        .status-dot { width: 8px; height: 8px; background: #00ff44; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #00ff44; }
-
-        /* نافذة اللعبة */
-        #gameFrame {
-            position: fixed; inset: 0; background: #000; z-index: 200;
+        /* نافذة اللعبة ملء الشاشة */
+        #gameWindow {
+            position: fixed; inset: 0; background: #000; z-index: 1000;
             display: none; flex-direction: column;
         }
-        .close-bar {
+        .top-bar {
             padding: 15px; background: #111; color: var(--gold);
-            font-weight: bold; text-align: right; border-bottom: 2px solid var(--gold); cursor: pointer;
+            display: flex; justify-content: space-between; align-items: center;
+            border-bottom: 2px solid var(--gold);
         }
+        .close-btn { background: #d43737; color: #fff; border: none; padding: 5px 15px; border-radius: 8px; font-weight: bold; }
+
+        iframe { flex: 1; border: none; width: 100%; height: 100%; }
+        
+        #pIdDisp { font-size: 10px; color: #444; margin-top: 10px; }
     </style>
 </head>
 <body>
 
-    <div class="top-nav">
-        <div class="balance-title">الرصيد الملكي المتاح</div>
-        <div class="main-balance" id="totalBal">0</div>
-        <div id="pNameDisp">تحميل الحساب...</div>
+    <div class="balance-header">
+        <span class="bal-label">إجمالي الرصيد المتاح</span>
+        <div class="bal-value" id="mainBalDisplay">0</div>
+        <div style="color:var(--gold); font-size: 12px; margin-top: 5px;">ليرة سورية</div>
     </div>
 
-    <div style="margin-top: 20px; color: var(--gold); font-weight: bold;">🕹️ اختر بوابتك للربح</div>
+    <a href="https://t.me/SHAM_CASH" target="_blank" class="sham-btn">
+        💰 شحن وسحب فوري (شام كاش)
+    </a>
 
     <div class="games-grid">
-        <div class="game-item" onclick="launchGame('wheel.html')">
-            <i>🎡</i>
+        <div class="game-card" onclick="openGame('wheel.html')">
+            <i style="animation-delay: 0s;">🎡</i>
             <b>عجلة الملوك</b>
         </div>
-        <div class="game-item" onclick="launchGame('mines.html')">
-            <i>💣</i>
+        <div class="game-card" onclick="openGame('mines.html')">
+            <i style="animation-delay: 0.5s;">💣</i>
             <b>منجم الذهب</b>
         </div>
-        <div class="game-item" onclick="launchGame('plane.html')">
-            <i>🚀</i>
+        <div class="game-card" onclick="openGame('plane.html')">
+            <i style="animation-delay: 1s;">🚀</i>
             <b>طيارة الحظ</b>
         </div>
-        <div class="game-item" onclick="launchGame('battle.html')">
-            <i>⚔️</i>
+        <div class="game-card" onclick="openGame('battle.html')">
+            <i style="animation-delay: 1.5s;">⚔️</i>
             <b>ساحة القتال</b>
         </div>
     </div>
 
-    <div class="footer-bar">
-        <span class="status-dot"></span> الخادم السوري يعمل بكفاءة عالية<br>
-        PLATINUM ROYAL © 2026
-    </div>
+    <div id="pIdDisp">ID: --</div>
 
-    <div id="gameFrame">
-        <div class="close-bar" onclick="closeGame()"> ✖ إغلاق اللعبة والعودة للمنصة </div>
-        <iframe id="iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
+    <div id="gameWindow">
+        <div class="top-bar">
+            <span>PLATINUM ROYAL 👑</span>
+            <button class="close-btn" onclick="closeGame()">إغلاق X</button>
+        </div>
+        <iframe id="gameIframe" src=""></iframe>
     </div>
 
     <script>
+        // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // الحصول على هوية اللاعب
+        // جلب أو إنشاء معرف اللاعب
         const pId = localStorage.getItem('pId') || "PL" + Math.floor(Math.random()*99999);
         localStorage.setItem('pId', pId);
+        document.getElementById('pIdDisp').innerText = "ID: " + pId;
 
-        // ربط الرصيد والاسم
+        // مزامنة الرصيد مع الواجهة فقط
         db.ref('players_logs/' + pId).on('value', (s) => {
             if (s.exists()) {
-                const data = s.val();
-                document.getElementById('totalBal').innerText = Number(data.score).toLocaleString();
-                document.getElementById('pNameDisp').innerText = "👤 " + (data.name || "لاعب ملكي");
+                const score = s.val().score || 0;
+                document.getElementById('mainBalDisplay').innerText = Number(score).toLocaleString();
             } else {
-                // إذا كان لاعب جديد
+                // إنشاء ملف للاعب الجديد إذا لم يوجد
                 db.ref('players_logs/' + pId).set({ name: "لاعب جديد", score: 0, gameMode: "normal" });
             }
         });
 
-        function launchGame(file) {
-            // نمرر الـ pId للعبة عشان تعرف مين اللاعب
-            document.getElementById('iframe').src = file + "?pId=" + pId;
-            document.getElementById('gameFrame').style.display = 'flex';
+        // وظيفة فتح اللعبة مع تمرير المعرف لضمان عدم ظهور رصيد 0
+        function openGame(file) {
+            const gameUrl = file + "?pId=" + pId;
+            document.getElementById('gameIframe').src = gameUrl;
+            document.getElementById('gameWindow').style.display = 'flex';
         }
 
+        // وظيفة الإغلاق
         function closeGame() {
-            document.getElementById('gameFrame').style.display = 'none';
-            document.getElementById('iframe').src = ""; // تفريغ الرام
+            document.getElementById('gameWindow').style.display = 'none';
+            document.getElementById('gameIframe').src = "";
         }
     </script>
 </body>
