@@ -3,214 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL | المنصة المتكاملة 👑</title>
+    <title>PLATINUM ROYAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --neon: #00ff44; --border: #222; }
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; text-align: center; }
         
-        /* شاشة الاسم الثلاثي */
-        #nameOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
-        #nameOverlay input { background: #111; border: 2px solid var(--gold); color: #fff; padding: 15px; border-radius: 12px; width: 80%; text-align: center; margin-bottom: 20px; font-family: 'Cairo'; }
-        #nameOverlay button { background: var(--gold); border: none; padding: 12px 40px; border-radius: 12px; font-weight: bold; cursor: pointer; }
-
-        /* الواجهة الرئيسية */
-        .header { padding: 15px; background: #0a0a0a; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
-        .balance-card { padding: 40px 20px; text-align: center; background: radial-gradient(circle, #1a1a1a, #000); }
-        .balance-value { font-size: 50px; font-weight: 900; color: var(--gold); }
+        /* الهيدر والرصيد */
+        .header { padding: 20px; background: #0a0a0a; border-bottom: 1px solid #222; }
+        .balance { font-size: 45px; color: #ffcc33; font-weight: 900; margin: 10px 0; }
 
         /* شبكة الأيقونات */
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
-        .game-icon { background: #111; border: 1px solid var(--border); border-radius: 20px; padding: 25px; text-align: center; cursor: pointer; transition: 0.3s; }
-        .game-icon:active { transform: scale(0.9); }
-        .game-icon i { font-size: 40px; display: block; margin-bottom: 10px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .game-card { background: #111; border: 1px solid #222; border-radius: 15px; padding: 25px; cursor: pointer; text-decoration: none; color: #fff; }
+        .game-card i { font-size: 40px; display: block; margin-bottom: 10px; }
 
-        /* شاشة اللعبة المنبثقة */
-        #gameWindow { position: fixed; inset: 0; background: #000; z-index: 9000; display: none; flex-direction: column; }
-        .close-game { padding: 15px; background: #111; color: var(--gold); text-align: left; font-weight: bold; cursor: pointer; }
-        .game-content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; }
-
-        /* تصميم الألعاب */
-        .mine-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; width: 100%; max-width: 300px; }
-        .cell { aspect-ratio: 1; background: #222; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-        .wheel-circle { width: 220px; height: 220px; border: 8px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 50px; transition: 4s cubic-bezier(0.1, 0.7, 0.1, 1); box-shadow: 0 0 20px var(--gold); }
-        .bet-options { display: flex; gap: 10px; margin-top: 20px; }
-        .bet-btn { background: #222; border: 1px solid var(--gold); color: #fff; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
-        .bet-btn.active { background: var(--gold); color: #000; }
-        .plane-area { width: 100%; height: 150px; background: #111; border-radius: 15px; position: relative; overflow: hidden; }
-        #plane-obj { position: absolute; bottom: 10px; left: 10%; font-size: 30px; transition: 0.1s; }
+        /* مشغل الألعاب Iframe */
+        #player { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
+        .close { padding: 15px; background: #111; color: #ffcc33; text-align: left; cursor: pointer; font-weight: bold; }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
-    <audio id="clickSnd" src="https://www.soundjay.com/buttons/button-16.mp3"></audio>
-
-    <div id="nameOverlay">
-        <h2 style="color:var(--gold)">PLATINUM ROYAL</h2>
-        <input type="text" id="fullNameInput" placeholder="الاسم الثلاثي حصراً">
-        <button onclick="saveName()">بدء التجربة الملكية</button>
-    </div>
-
     <div class="header">
-        <div id="pName" style="color:var(--gold); font-size:14px;">----</div>
-        <div style="color:var(--neon); font-size:12px;">● متصل</div>
+        <div style="font-size: 12px; color: #777;">الرصيد الملكي</div>
+        <div class="balance" id="b">0</div>
+        <div id="n" style="color: #ffcc33;">----</div>
     </div>
 
-    <div class="balance-card">
-        <div style="font-size:12px; opacity:0.7;">رصيدك المتوفر</div>
-        <div class="balance-value" id="userBal">0</div>
-        <div style="color:var(--neon); font-size:13px; margin-top:10px;">JACKPOT: <span id="jpValue">18,885,545</span></div>
+    <div class="grid">
+        <div class="game-card" onclick="run('./mines.html')"><i>⛏️</i><b>المنجم</b></div>
+        <div class="game-card" onclick="run('./wheel.html')"><i>🎡</i><b>العجلة</b></div>
+        <div class="game-card" onclick="run('./plane.html')"><i>✈️</i><b>الطيار</b></div>
+        <div class="game-card" onclick="run('./battle.html')"><i>⚔️</i><b>القتال</b></div>
     </div>
 
-    <div class="games-grid">
-        <div class="game-icon" onclick="openGame('mines')"><i>⛏️</i><b>المنجم</b></div>
-        <div class="game-icon" onclick="openGame('wheel')"><i>🎡</i><b>العجلة</b></div>
-        <div class="game-icon" onclick="openGame('plane')"><i>✈️</i><b>الطيار</b></div>
-        <div class="game-icon" onclick="openGame('battle')"><i>⚔️</i><b>القتال</b></div>
-    </div>
-
-    <div id="gameWindow">
-        <div class="close-game" onclick="closeGame()">⬅ إغلاق والعودة</div>
-        <div class="game-content" id="gameBody"></div>
+    <div id="player">
+        <div class="close" onclick="document.getElementById('player').style.display='none'; document.getElementById('ifrm').src='';"> ⬅ إغلاق اللعبة </div>
+        <iframe id="ifrm" src=""></iframe>
     </div>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
-        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
-        let fullName = localStorage.getItem('fullName');
-        let balance = 0;
-        let userMode = "random"; // الوضع الافتراضي
-        let selectedBet = 1000; 
-
         localStorage.setItem('pId', pId);
 
-        if(!fullName) { document.getElementById('nameOverlay').style.display='flex'; }
-        else { startApp(); }
-
-        function saveName() {
-            let input = document.getElementById('fullNameInput').value;
-            if(input.trim().split(" ").length < 3) return alert("يرجى إدخال اسمك الثلاثي");
-            localStorage.setItem('fullName', input);
-            db.ref('players_logs/'+pId).set({name: input, score: 0, mode: "random"});
-            location.reload();
-        }
-
-        function startApp() {
-            document.getElementById('pName').innerText = fullName;
-            db.ref('players_logs/'+pId).on('value', s => {
-                if(s.exists()){
-                    balance = s.val().score || 0;
-                    userMode = s.val().mode || "random";
-                    document.getElementById('userBal').innerText = balance.toLocaleString();
-                }
-            });
-            db.ref('admin_settings/jackpot_value').on('value', s => {
-                if(s.exists()) document.getElementById('jpValue').innerText = s.val().toLocaleString();
-            });
-        }
-
-        function openGame(type) {
-            document.getElementById('clickSnd').play();
-            const win = document.getElementById('gameWindow');
-            const body = document.getElementById('gameBody');
-            win.style.display = 'flex';
-            body.innerHTML = '';
-
-            if(type === 'mines') {
-                body.innerHTML = `<h3>لعبة المنجم</h3><div class="mine-grid" id="mGrid"></div><button onclick="playMines()" style="margin-top:20px; padding:10px 30px; background:var(--gold); border:none; border-radius:10px; font-weight:bold;">فتح المنجم (1000)</button>`;
-            } 
-            else if(type === 'wheel') {
-                body.innerHTML = `<h3>عجلة الحظ الملكية</h3>
-                <div class="wheel-circle" id="wObj">🎡</div>
-                <div class="bet-options">
-                    <button class="bet-btn active" onclick="setBet(1000, this)">1000</button>
-                    <button class="bet-btn" onclick="setBet(5000, this)">5000</button>
-                    <button class="bet-btn" onclick="setBet(10000, this)">10000</button>
-                </div>
-                <button onclick="playWheel()" style="margin-top:20px; padding:12px 40px; background:var(--gold); border:none; border-radius:10px; font-weight:bold;">تدوير الآن</button>`;
+        // جلب الاسم والرصيد
+        db.ref('players_logs/' + pId).on('value', (s) => {
+            if(s.exists()) {
+                document.getElementById('b').innerText = s.val().score.toLocaleString();
+                document.getElementById('n').innerText = s.val().name;
+            } else {
+                // إذا لم يكن مسجلاً، اطلب الاسم (مرة واحدة فقط)
+                let name = prompt("أدخل اسمك الثلاثي:");
+                if(name) db.ref('players_logs/' + pId).set({name: name, score: 0});
             }
-            else if(type === 'plane') {
-                body.innerHTML = `<h3>الطيار</h3><h1 id="pMult">1.00x</h1><div class="plane-area"><div id="plane-obj">✈️</div></div><button id="pBtn" onclick="playPlane()" style="margin-top:20px; padding:10px 30px; background:var(--gold); border:none; border-radius:10px; font-weight:bold;">إقلاع (1000)</button>`;
-            }
-            else if(type === 'battle') {
-                body.innerHTML = `<h3>قتال الوحوش</h3><div style="display:flex; gap:30px; font-size:40px;"><div>🛡️</div><div style="color:red">VS</div><div>👹</div></div><button onclick="playBattle()" style="margin-top:30px; padding:10px 30px; background:red; color:#fff; border:none; border-radius:10px; font-weight:bold;">هجوم (1000)</button>`;
-            }
-        }
+        });
 
-        function setBet(amount, btn) {
-            selectedBet = amount;
-            document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById('clickSnd').play();
-        }
-
-        function closeGame() { document.getElementById('gameWindow').style.display = 'none'; }
-
-        // --- نظام النتائج المربوط باللوحة ---
-        function getResult(chance = 0.5) {
-            if (userMode === "win") return true;
-            if (userMode === "lose") return false;
-            return Math.random() < chance;
-        }
-
-        // --- الألعاب ---
-
-        function playMines() {
-            if(balance < 1000) return alert("رصيدك ناقص");
-            db.ref('players_logs/'+pId+'/score').set(balance - 1000);
-            const grid = document.getElementById('mGrid');
-            grid.innerHTML = '';
-            let bombIndex = Math.floor(Math.random()*25);
-            // إذا كان الوضع "خسارة"، نجعل أول ضغطة هي القنبلة غالباً
-            for(let i=0; i<25; i++) {
-                let c = document.createElement('div'); c.className = 'cell';
-                c.onclick = () => {
-                    let isLose = (userMode === "lose") ? true : (userMode === "win" ? false : (i === bombIndex));
-                    if(isLose) { c.innerText = '💣'; alert('انفجرت!'); openGame('mines'); }
-                    else { c.innerText = '💎'; }
-                };
-                grid.appendChild(c);
-            }
-        }
-
-        function playWheel() {
-            if(balance < selectedBet) return alert("رصيدك ناقص");
-            db.ref('players_logs/'+pId+'/score').set(balance - selectedBet);
-            let deg = 1800 + Math.floor(Math.random()*1800);
-            document.getElementById('wObj').style.transform = `rotate(${deg}deg)`;
-            
-            setTimeout(() => {
-                let win = getResult(0.3) ? selectedBet * 3 : 0;
-                db.ref('players_logs/'+pId+'/score').set(balance + win);
-                alert(win > 0 ? `مبروك! ربحت ${win}` : "حظاً أوفر المرة القادمة");
-            }, 4000);
-        }
-
-        function playPlane() {
-            if(balance < 1000) return alert("رصيدك ناقص");
-            db.ref('players_logs/'+pId+'/score').set(balance - 1000);
-            let m = 1.0; 
-            let crashLimit = (userMode === "lose") ? 1.1 : (userMode === "win" ? 5.0 : 1.5 + Math.random()*3);
-            let btn = document.getElementById('pBtn');
-            btn.innerText = "سحب الأرباح";
-            let iv = setInterval(() => {
-                m += 0.05; document.getElementById('pMult').innerText = m.toFixed(2)+"x";
-                if(m >= crashLimit) { clearInterval(iv); alert("طارت الطائرة!"); openGame('plane'); }
-            }, 100);
-            btn.onclick = () => { clearInterval(iv); db.ref('players_logs/'+pId+'/score').set(balance + Math.floor(1000*m)); alert("تم السحب بنجاح!"); openGame('plane'); };
-        }
-
-        function playBattle() {
-            if(balance < 1000) return alert("رصيدك ناقص");
-            let win = getResult(0.5);
-            db.ref('players_logs/'+pId+'/score').set(win ? balance + 1000 : balance - 1000);
-            alert(win ? "انتصرت وربحت 1000!" : "للأسف هزمك الوحش");
+        function run(url) {
+            document.getElementById('ifrm').src = url;
+            document.getElementById('player').style.display = 'flex';
         }
     </script>
 </body>
