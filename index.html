@@ -3,91 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL | شام كاش 👑</title>
+    <title>PLATINUM ROYAL | الواجهة الملكية 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; padding-bottom: 50px; }
         
-        /* الشريط العلوي */
-        .ticker { background: #1a1a1a; color: #00ff44; padding: 12px 0; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #333; font-size: 14px; }
-        .ticker-content { display: inline-block; animation: ticker 80s linear infinite; }
-        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
-        .ticker-item { margin-left: 70px; display: inline-block; font-weight: bold; }
+        :root { --gold: #d4af37; --bg: #000; --card: #111; }
 
-        .header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; background: radial-gradient(circle, #111, #000); }
-        .balance { font-size: 60px; color: #ffcc33; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.4); margin: 5px 0; }
-        #userNameDisp { color: #888; font-size: 18px; margin-top: 10px; border: 1px solid #333; display: inline-block; padding: 2px 20px; border-radius: 20px; }
+        body { 
+            background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; 
+            margin: 0; padding: 0; overflow-x: hidden; text-align: center;
+        }
 
-        /* الشبكة */
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px 25px; }
-        .game-card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.2s; }
-        .game-card i { font-size: 45px; display: block; margin-bottom: 15px; }
+        /* هيدر الرصيد */
+        .top-nav {
+            padding: 30px 20px; background: linear-gradient(to bottom, #151515, #000);
+            border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 100;
+        }
+        .balance-title { font-size: 14px; color: #888; letter-spacing: 1px; }
+        .main-balance { 
+            font-size: 55px; color: var(--gold); font-weight: 900; 
+            text-shadow: 0 0 20px rgba(212,175,55,0.4); margin: 5px 0;
+        }
+        #pNameDisp { font-size: 16px; color: #555; border: 1px solid #222; padding: 4px 15px; border-radius: 20px; display: inline-block; }
 
-        /* واجهات الألعاب المدمجة */
-        .game-overlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; }
-        .game-header { padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #ffcc33; }
-        .bet-input { background: #222; border: 1px solid #ffcc33; color: #fff; padding: 10px; border-radius: 10px; width: 80px; text-align: center; }
+        /* شبكة الأيقونات المتحركة */
+        .games-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 25px;
+            padding: 30px; max-width: 500px; margin: 0 auto;
+        }
 
-        /* المنجم */
-        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 90%; margin: 20px auto; max-width: 350px; }
-        .cell { aspect-ratio: 1/1; background: #222; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 24px; cursor: pointer; }
+        .game-item {
+            position: relative; background: var(--card); border-radius: 30px;
+            padding: 35px 10px; border: 1px solid #1a1a1a;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer; overflow: hidden;
+        }
 
-        /* الطيارة */
-        #crash-area { height: 250px; background: #050505; margin: 20px; border-radius: 20px; position: relative; border: 1px solid #333; overflow: hidden; }
-        #mult-disp { font-size: 4rem; color: #ffcc33; margin-top: 70px; font-weight: 900; }
-        
-        .btn-action { background: #ffcc33; color: #000; border: none; padding: 15px; border-radius: 15px; font-weight: 900; cursor: pointer; width: 80%; margin: 10px auto; font-size: 1.2rem; }
-        
-        #nameOverlay { position: fixed; inset: 0; background: #000; z-index: 20000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        /* تأثير الحركة للأيقونات */
+        .game-item i {
+            font-size: 65px; display: block; margin-bottom: 15px;
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5));
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .game-item:nth-child(2) i { animation-delay: 0.5s; }
+        .game-item:nth-child(3) i { animation-delay: 1s; }
+        .game-item:nth-child(4) i { animation-delay: 1.5s; }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+
+        .game-item b { font-size: 18px; color: var(--gold); display: block; letter-spacing: 1px; }
+
+        /* تأثير الضوء عند اللمس */
+        .game-item:active { transform: scale(0.9); border-color: var(--gold); background: #1a1a1a; }
+        .game-item::after {
+            content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+            opacity: 0; transition: 0.3s;
+        }
+        .game-item:hover::after { opacity: 1; }
+
+        /* شريط سفلي فخم */
+        .footer-bar { padding: 40px 20px; color: #444; font-size: 12px; }
+        .status-dot { width: 8px; height: 8px; background: #00ff44; border-radius: 50%; display: inline-block; margin-right: 5px; box-shadow: 0 0 10px #00ff44; }
+
+        /* نافذة اللعبة */
+        #gameFrame {
+            position: fixed; inset: 0; background: #000; z-index: 200;
+            display: none; flex-direction: column;
+        }
+        .close-bar {
+            padding: 15px; background: #111; color: var(--gold);
+            font-weight: bold; text-align: right; border-bottom: 2px solid var(--gold); cursor: pointer;
+        }
     </style>
 </head>
 <body>
 
-    <div class="ticker"><div class="ticker-content" id="tickerItems"></div></div>
-
-    <div id="nameOverlay">
-        <h1>👑 PLATINUM ROYAL</h1>
-        <input type="text" id="nameInput" placeholder="أدخل اسمك الثلاثي">
-        <button class="btn-action" onclick="confirmName()">دخول المنصة</button>
+    <div class="top-nav">
+        <div class="balance-title">الرصيد الملكي المتاح</div>
+        <div class="main-balance" id="totalBal">0</div>
+        <div id="pNameDisp">تحميل الحساب...</div>
     </div>
 
-    <div class="header">
-        <div class="balance" id="balDisp">0</div>
-        <div id="userNameDisp">----</div>
-    </div>
+    <div style="margin-top: 20px; color: var(--gold); font-weight: bold;">🕹️ اختر بوابتك للربح</div>
 
-    <div class="grid">
-        <div class="game-card" onclick="openMines()"><i>⛏️</i><b>المنجم</b></div>
-        <div class="game-card" onclick="openCrash()"><i>✈️</i><b>الطيار</b></div>
-        <div class="game-card" onclick="alert('العجلة قيد التحديث')"><i>🎡</i><b>العجلة</b></div>
-        <div class="game-card" onclick="alert('ساحة القتال قيد التحديث')"><i>⚔️</i><b>القتال</b></div>
-    </div>
-
-    <div id="minesGame" class="game-overlay">
-        <div class="game-header">
-            <span>رصيدك: <span class="localBal">0</span></span>
-            <button onclick="closeAll()" style="color:red; background:none; border:none; font-weight:bold;">خروج</button>
+    <div class="games-grid">
+        <div class="game-item" onclick="launchGame('wheel.html')">
+            <i>🎡</i>
+            <b>عجلة الملوك</b>
         </div>
-        <div style="margin-top:20px;">الرهان: <input type="number" id="mineBet" class="bet-input" value="2000"></div>
-        <div class="mines-grid" id="minesContainer"></div>
-        <button class="btn-action" onclick="resetMines()">تصفير اللعبة</button>
+        <div class="game-item" onclick="launchGame('mines.html')">
+            <i>💣</i>
+            <b>منجم الذهب</b>
+        </div>
+        <div class="game-item" onclick="launchGame('plane.html')">
+            <i>🚀</i>
+            <b>طيارة الحظ</b>
+        </div>
+        <div class="game-item" onclick="launchGame('battle.html')">
+            <i>⚔️</i>
+            <b>ساحة القتال</b>
+        </div>
     </div>
 
-    <div id="crashGame" class="game-overlay">
-        <div class="game-header">
-            <span>الطيار: <span class="localBal">0</span></span>
-            <button onclick="closeAll()" style="color:red; background:none; border:none; font-weight:bold;">خروج</button>
-        </div>
-        <div id="crash-area">
-            <div id="mult-disp">1.00x</div>
-            <div id="plane" style="position:absolute; bottom:20px; left:10%; font-size:40px;">✈️</div>
-        </div>
-        <div>الرهان: <input type="number" id="crashBet" class="bet-input" value="2000"></div>
-        <button id="btn-start-crash" class="btn-action" onclick="startCrash()">إقلاع 🚀</button>
-        <button id="btn-cashout" class="btn-action" style="display:none; background:#00ff44;" onclick="cashout()">كاش آوت 💰</button>
+    <div class="footer-bar">
+        <span class="status-dot"></span> الخادم السوري يعمل بكفاءة عالية<br>
+        PLATINUM ROYAL © 2026
+    </div>
+
+    <div id="gameFrame">
+        <div class="close-bar" onclick="closeGame()"> ✖ إغلاق اللعبة والعودة للمنصة </div>
+        <iframe id="iframe" src="" style="width: 100%; height: 100%; border: none;"></iframe>
     </div>
 
     <script>
@@ -95,94 +127,32 @@
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
-        let fullName = localStorage.getItem('fullName');
-        let currentScore = 0;
+        // الحصول على هوية اللاعب
+        const pId = localStorage.getItem('pId') || "PL" + Math.floor(Math.random()*99999);
         localStorage.setItem('pId', pId);
 
-        if (!fullName) { document.getElementById('nameOverlay').style.display = 'flex'; } 
-        else { startPlatform(); }
-
-        function confirmName() {
-            let val = document.getElementById('nameInput').value.trim();
-            if (val.split(/\s+/).length < 2) return alert("أدخل اسمك الحقيقي!");
-            localStorage.setItem('fullName', val);
-            db.ref('players_logs/' + pId).set({ name: val, score: 0 }).then(() => { location.reload(); });
-        }
-
-        function startPlatform() {
-            document.getElementById('userNameDisp').innerText = "🕹️ " + fullName;
-            db.ref('players_logs/' + pId).on('value', (s) => {
-                if(s.exists()) { 
-                    currentScore = s.val().score;
-                    document.getElementById('balDisp').innerText = currentScore.toLocaleString();
-                    document.querySelectorAll('.localBal').forEach(e => e.innerText = currentScore.toLocaleString());
-                }
-            });
-            // توليد شريط
-            let t = ""; for(let i=0; i<25; i++) t += `<span class="ticker-item">🔥 لاعب ${Math.floor(Math.random()*999)} ربح ${Math.floor(Math.random()*50000)} SYP | </span>`;
-            document.getElementById('tickerItems').innerHTML = t;
-        }
-
-        function closeAll() { document.querySelectorAll('.game-overlay').forEach(e => e.style.display='none'); }
-
-        // --- محرك المنجم ---
-        function openMines() { document.getElementById('minesGame').style.display='flex'; resetMines(); }
-        function resetMines() {
-            const container = document.getElementById('minesContainer'); container.innerHTML = '';
-            for(let i=0; i<25; i++) {
-                let cell = document.createElement('div'); cell.className = 'cell';
-                cell.onclick = function() {
-                    let bet = parseInt(document.getElementById('mineBet').value);
-                    if(currentScore < bet) return alert("رصيدك لا يكفي!");
-                    if(Math.random() > 0.3) {
-                        this.innerText = "💎"; this.style.background = "#ffcc33";
-                        db.ref('players_logs/' + pId).update({ score: currentScore + (bet * 0.5) });
-                    } else {
-                        this.innerText = "💣"; this.style.background = "red";
-                        db.ref('players_logs/' + pId).update({ score: currentScore - bet });
-                        alert("انفجر المنجم!"); resetMines();
-                    }
-                };
-                container.appendChild(cell);
+        // ربط الرصيد والاسم
+        db.ref('players_logs/' + pId).on('value', (s) => {
+            if (s.exists()) {
+                const data = s.val();
+                document.getElementById('totalBal').innerText = Number(data.score).toLocaleString();
+                document.getElementById('pNameDisp').innerText = "👤 " + (data.name || "لاعب ملكي");
+            } else {
+                // إذا كان لاعب جديد
+                db.ref('players_logs/' + pId).set({ name: "لاعب جديد", score: 0, gameMode: "normal" });
             }
+        });
+
+        function launchGame(file) {
+            // نمرر الـ pId للعبة عشان تعرف مين اللاعب
+            document.getElementById('iframe').src = file + "?pId=" + pId;
+            document.getElementById('gameFrame').style.display = 'flex';
         }
 
-        // --- محرك الطيار ---
-        let crashInt, mult = 1.0, isFlying = false;
-        function openCrash() { document.getElementById('crashGame').style.display='flex'; }
-        function startCrash() {
-            let bet = parseInt(document.getElementById('crashBet').value);
-            if(currentScore < bet) return alert("رصيدك لا يكفي!");
-            db.ref('players_logs/' + pId).update({ score: currentScore - bet });
-            isFlying = true; mult = 1.0;
-            document.getElementById('btn-start-crash').style.display = 'none';
-            document.getElementById('btn-cashout').style.display = 'block';
-            crashInt = setInterval(() => {
-                mult += 0.05;
-                document.getElementById('mult-disp').innerText = mult.toFixed(2) + "x";
-                if(Math.random() < 0.02) { // احتمالية الانفجار
-                    clearInterval(crashInt); isFlying = false;
-                    document.getElementById('mult-disp').innerText = "BOOM! 💥";
-                    setTimeout(() => { 
-                        document.getElementById('btn-start-crash').style.display = 'block';
-                        document.getElementById('btn-cashout').style.display = 'none';
-                    }, 2000);
-                }
-            }, 150);
-        }
-        function cashout() {
-            if(!isFlying) return;
-            clearInterval(crashInt); isFlying = false;
-            let win = parseInt(document.getElementById('crashBet').value) * mult;
-            db.ref('players_logs/' + pId).update({ score: currentScore + win });
-            alert("ربحت: " + win.toFixed(0));
-            document.getElementById('btn-start-crash').style.display = 'block';
-            document.getElementById('btn-cashout').style.display = 'none';
+        function closeGame() {
+            document.getElementById('gameFrame').style.display = 'none';
+            document.getElementById('iframe').src = ""; // تفريغ الرام
         }
     </script>
 </body>
 </html>
-text: "Be066ca49abcf3d1ac79a65895aecb5e",
-                width: 140, height
-                
