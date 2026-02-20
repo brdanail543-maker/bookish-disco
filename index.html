@@ -3,160 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platinum Royal | المنصة الشاملة</title>
+    <title>Platinum Royal | Live Platform</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --gold: #ffca28; --green: #00ff44; --bg: #0a0a0a; --card: #161616; }
-        body { background: var(--bg); color: white; text-align: center; font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; padding: 0; }
-        
-        /* الهيدر العلوي مع الرقم المغري */
-        .top-nav { background: #000; padding: 25px 15px; border-bottom: 2px solid var(--gold); position: sticky; top: 0; z-index: 1000; }
-        #balDisp { font-size: 2.8rem; color: var(--gold); font-weight: bold; font-family: monospace; line-height: 1; }
-        .attractive-num { color: var(--green); font-size: 1.1rem; font-weight: bold; margin-top: 8px; text-shadow: 0 0 10px rgba(0, 255, 68, 0.5); }
-        #userNameDisp { font-size: 0.8rem; color: #888; margin-bottom: 5px; }
+        :root { --gold: #ffca28; --green: #00ff44; --red: #ff4444; --bg: #0a0a0a; }
+        body { background: var(--bg); color: white; text-align: center; font-family: sans-serif; margin: 0; overflow-x: hidden; }
 
-        /* واجهة صالة الألعاب */
-        .main-ui { padding: 20px; }
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 30px; }
-        .game-card { background: var(--card); border: 1px solid #333; padding: 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
-        .game-card:active { transform: scale(0.95); border-color: var(--gold); }
-        .game-card i { font-size: 40px; display: block; margin-bottom: 10px; }
-        .game-card b { color: var(--gold); display: block; }
+        /* الشريط العلوي المتحرك (150 لاعب) */
+        .live-bar { background: #111; color: var(--green); padding: 5px; font-size: 11px; white-space: nowrap; overflow: hidden; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 2000; }
+        .scrolling-text { display: inline-block; animation: scroll 40s linear infinite; }
+        @keyframes scroll { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
 
-        /* نافذة اللعبة المدمجة (الـ 25 خانة) */
-        #gameOverlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 2000; flex-direction: column; }
-        .game-header { padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        
-        .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 90%; max-width: 350px; margin: 25px auto; }
-        .cell { aspect-ratio: 1/1; background: #222; border-radius: 8px; border: 1px solid #444; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; cursor: pointer; }
-        .cell.diamond { background: var(--gold); color: #000; box-shadow: 0 0 15px var(--gold); border: none; animation: pop 0.3s ease; }
-        
-        @keyframes pop { 0% { transform: scale(0.8); } 100% { transform: scale(1); } }
+        /* الهيدر */
+        .header { background: #000; padding: 15px; border-bottom: 2px solid var(--gold); }
+        #balDisp { font-size: 2.8rem; color: var(--gold); font-weight: bold; font-family: monospace; }
+        .sham-id { color: var(--green); font-size: 0.7rem; font-family: monospace; margin-top: 5px; }
 
-        .btn-reset { background: var(--gold); color: #000; border: none; padding: 12px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; margin-bottom: 20px; }
-        .btn-close { background: transparent; color: #ff4444; border: 1px solid #ff4444; padding: 8px 15px; border-radius: 8px; cursor: pointer; }
+        /* واجهة الألعاب */
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px; }
+        .game-card { background: #161616; border: 1px solid #333; padding: 20px; border-radius: 20px; cursor: pointer; }
+        .game-card i { font-size: 40px; display: block; margin-bottom: 8px; }
 
-        /* الجوائز والشحن */
-        .qr-section { background: var(--card); padding: 20px; border-radius: 20px; margin: 20px; border: 1px solid #222; }
-        #qrcode { display: inline-block; background: white; padding: 10px; border-radius: 12px; margin: 15px 0; }
+        /* نظام الرهان */
+        .bet-selector { display: flex; justify-content: center; gap: 5px; margin: 10px 0; background: #111; padding: 10px; }
+        .bet-btn { background: #222; border: 1px solid var(--gold); color: white; padding: 8px; border-radius: 5px; flex: 1; cursor: pointer; }
+        .bet-btn.active { background: var(--gold); color: #000; font-weight: bold; }
+
+        /* الواجهات المداخلية */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; flex-direction: column; }
+        .grid-25 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; width: 90%; max-width: 340px; margin: 15px auto; }
+        .cell { aspect-ratio: 1/1; background: #222; border: 1px solid #444; border-radius: 5px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+
+        #planeArea { height: 200px; background: #000; margin: 15px; border-radius: 10px; position: relative; border: 1px solid #333; }
+        #multiplier { font-size: 3.5rem; color: var(--gold); margin-top: 50px; font-weight: bold; }
     </style>
 </head>
 <body>
 
-    <div class="top-nav">
-        <div id="userNameDisp">🕹️ اللاعب: جارٍ التحميل...</div>
+    <div class="live-bar">
+        <div class="scrolling-text" id="liveText">جاري جلب نشاطات اللاعبين...</div>
+    </div>
+
+    <div class="header">
+        <div id="userNameDisp" style="font-size: 0.8rem; color: #888;">🕹️ اللاعب: جارٍ التحميل...</div>
         <div id="balDisp">0</div>
-        <div class="attractive-num">🟢 الربح المتوقع اليوم: <span id="bonusNum">+ 1,250,000</span></div>
+        <div class="sham-id">SHAM CASH ID: Be066ca49abcf3d1ac79a65895aecb5e</div>
     </div>
 
-    <div id="platformUI" class="main-ui">
+    <div id="platformUI">
         <div class="games-grid">
-            <div class="game-card" onclick="openMines()">
-                <i>💣</i><b>المنجم (25)</b>
-            </div>
-            <div class="game-card" onclick="alert('قريباً: ملاحقة البرق')">
-                <i>🚀</i><b>البرق</b>
-            </div>
-            <div class="game-card" onclick="alert('قريباً: صناديق الحظ')">
-                <i>📦</i><b>الصناديق</b>
-            </div>
-            <div class="game-card" onclick="alert('قريباً: عجلة الحظ')">
-                <i>🎡</i><b>عجلة الحظ</b>
-            </div>
+            <div class="game-card" onclick="openGame('mines')"><i>💣</i><b>المنجم (25)</b></div>
+            <div class="game-card" onclick="openGame('crash')"><i>🚀</i><b>الطيارة</b></div>
         </div>
-
-        <div class="qr-section">
-            <h3 style="margin:0; color:var(--gold)">شحن رصيد - شام كاش</h3>
+        <div style="background: white; padding: 10px; display: inline-block; border-radius: 10px; margin-top: 10px;">
             <div id="qrcode"></div>
-            <div style="font-size:10px; color:var(--green); font-family:monospace;">ID: Be066ca49abcf3d1ac79a65895aecb5e</div>
         </div>
+        <p style="color:var(--gold); font-size: 12px;">امسح الكود للشحن الفوري عبر شام كاش</p>
     </div>
 
-    <div id="gameOverlay">
-        <div class="game-header">
-            <span style="color: var(--gold); font-weight: bold;">💎 الرصيد: <span id="gameBalDisp">0</span></span>
-            <button class="btn-close" onclick="closeMines()">إغلاق</button>
+    <div id="minesOverlay" class="overlay">
+        <div style="padding:15px; background:#000; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
+            <span style="color:var(--gold)">المنجم | <span class="localBal">0</span></span>
+            <button onclick="closeAll()" style="color:var(--red); background:none; border:1px solid var(--red); border-radius:5px;">خروج</button>
         </div>
-        
-        <h2 style="color: white; margin-top: 30px;">لعبة المنجم الملكية</h2>
+        <div class="bet-selector">
+            <button class="bet-btn active" onclick="setBet(2000, this)">2K</button>
+            <button class="bet-btn" onclick="setBet(5000, this)">5K</button>
+            <button class="bet-btn" onclick="setBet(10000, this)">10K</button>
+            <button class="bet-btn" onclick="setBet(20000, this)">20K</button>
+        </div>
         <div class="grid-25" id="mineGrid"></div>
-        
-        <button class="btn-reset" onclick="resetMines()">تصفير الشبكة</button>
-        <div class="attractive-num" style="font-size: 1.5rem;">جواهرك المكتشفة: <span id="diamondsCount">0</span></div>
+        <button onclick="initMines()" style="background:var(--gold); border:none; padding:10px; width:80%; margin:auto; border-radius:10px; font-weight:bold;">تصفير الشبكة</button>
+    </div>
+
+    <div id="crashOverlay" class="overlay">
+        <div style="padding:15px; background:#000; border-bottom:1px solid #333; display:flex; justify-content:space-between;">
+            <span style="color:var(--gold)">الطيارة | <span class="localBal">0</span></span>
+            <button onclick="closeAll()" style="color:var(--red); background:none; border:1px solid var(--red); border-radius:5px;">خروج</button>
+        </div>
+        <div id="planeArea">
+            <div id="multiplier">1.00x</div>
+            <div id="planeImg" style="position:absolute; bottom:10px; left:10%; font-size:30px;">🚀</div>
+        </div>
+        <div class="bet-selector">
+            <button class="bet-btn active" onclick="setBet(2000, this)">2K</button>
+            <button class="bet-btn" onclick="setBet(5000, this)">5K</button>
+            <button class="bet-btn" onclick="setBet(10000, this)">10K</button>
+        </div>
+        <button id="btnStart" onclick="startCrash()" style="background:var(--gold); color:black; border:none; padding:15px; width:80%; margin:auto; border-radius:10px; font-weight:bold;">ابدأ التحليق</button>
+        <button id="btnCashout" onclick="cashout()" style="display:none; background:var(--green); color:black; border:none; padding:15px; width:80%; margin:auto; border-radius:10px; font-weight:bold;">كاش آوت 💰</button>
     </div>
 
     <script>
-        // --- إعدادات Firebase ---
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- بيانات اللاعب ---
         let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
-        let fullName = localStorage.getItem('fullName') || "لاعب بلاتينيوم";
-        localStorage.setItem('pId', pId);
-        let currentScore = 0;
-        let foundDiamonds = 0;
+        let fullName = localStorage.getItem('fullName') || "لاعب ملكي";
+        let currentBalance = 0;
+        let selectedBet = 2000;
 
-        // --- المزامنة الموحدة ---
-        function startSync() {
-            db.ref('players_logs/' + pId).on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    currentScore = snapshot.val().score;
-                    document.getElementById('balDisp').innerText = Number(currentScore).toLocaleString();
-                    document.getElementById('gameBalDisp').innerText = Number(currentScore).toLocaleString();
+        // --- توليد حركة 150 لاعب ---
+        const names = ["أحمد", "خالد", "ليث", "فهد", "محمد", "علي", "سارة", "يزن", "عمر", "جاد", "باسم", "نور"];
+        const actions = ["قام بإيداع", "قام بسحب", "ربح هدية", "ربح في المنجم", "كاش آوت طيارة"];
+        function generateLiveFeed() {
+            let feed = "";
+            for(let i=0; i<150; i++) {
+                let name = names[Math.floor(Math.random()*names.length)] + " " + Math.floor(Math.random()*99);
+                let action = actions[Math.floor(Math.random()*actions.length)];
+                let amount = (Math.random() * 50000).toFixed(0);
+                feed += ` 🔥 ${name} ${action} بقيمة ${amount} SYP | `;
+            }
+            document.getElementById('liveText').innerText = feed + feed;
+        }
+
+        function sync() {
+            db.ref('players_logs/' + pId).on('value', (s) => {
+                if(s.exists()){
+                    currentBalance = s.val().score;
+                    document.getElementById('balDisp').innerText = Number(currentBalance).toLocaleString();
+                    document.querySelectorAll('.localBal').forEach(el => el.innerText = Number(currentBalance).toLocaleString());
                 }
             });
         }
 
-        // --- إدارة الواجهات ---
-        function openMines() {
+        function setBet(amount, btn) {
+            selectedBet = amount;
+            document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        function openGame(id) {
             document.getElementById('platformUI').style.display = 'none';
-            document.getElementById('gameOverlay').style.display = 'flex';
-            resetMines();
+            document.getElementById(id + 'Overlay').style.display = 'flex';
+            if(id === 'mines') initMines();
         }
 
-        function closeMines() {
-            document.getElementById('gameOverlay').style.display = 'none';
-            document.getElementById('platformUI').style.display = 'flex';
+        function closeAll() {
+            document.querySelectorAll('.overlay').forEach(o => o.style.display = 'none');
+            document.getElementById('platformUI').style.display = 'block';
         }
 
-        // --- منطق اللعبة المدمجة ---
-        function resetMines() {
-            foundDiamonds = 0;
-            document.getElementById('diamondsCount').innerText = "0";
+        // --- المنجم ---
+        function initMines() {
             const grid = document.getElementById('mineGrid');
             grid.innerHTML = '';
-            for (let i = 0; i < 25; i++) {
-                const cell = document.createElement('div');
+            for(let i=0; i<25; i++) {
+                let cell = document.createElement('div');
                 cell.className = 'cell';
                 cell.onclick = function() {
-                    if(this.classList.contains('diamond')) return;
-                    this.classList.add('diamond');
-                    this.innerText = '💎';
-                    foundDiamonds++;
-                    document.getElementById('diamondsCount').innerText = foundDiamonds;
-                    
-                    // تحديث الرصيد في Firebase فوراً
-                    let newScore = currentScore + 1000; // ربح 1000 عن كل جوهرة
-                    db.ref('players_logs/' + pId).update({ score: newScore });
+                    if(currentBalance < selectedBet) return alert("الرصيد لا يكفي!");
+                    let balAfter = currentBalance - selectedBet;
+                    if(Math.random() > 0.3) {
+                        this.style.background = "var(--gold)"; this.innerText = "💎";
+                        db.ref('players_logs/' + pId).update({ score: balAfter + (selectedBet * 1.5) });
+                    } else {
+                        this.style.background = "var(--red)"; this.innerText = "💣";
+                        db.ref('players_logs/' + pId).update({ score: balAfter });
+                    }
                 };
                 grid.appendChild(cell);
             }
         }
 
+        // --- الطيارة ---
+        let crashInt; let cMult = 1.0; let flying = false;
+        function startCrash() {
+            if(currentBalance < selectedBet) return alert("الرصيد لا يكفي!");
+            flying = true; cMult = 1.0;
+            db.ref('players_logs/' + pId).update({ score: currentBalance - selectedBet });
+            document.getElementById('btnStart').style.display = 'none';
+            document.getElementById('btnCashout').style.display = 'block';
+            crashInt = setInterval(() => {
+                cMult += 0.02;
+                document.getElementById('multiplier').innerText = cMult.toFixed(2) + "x";
+                if(Math.random() < 0.02) crashNow();
+            }, 100);
+        }
+        function crashNow() { clearInterval(crashInt); flying = false; document.getElementById('multiplier').innerText = "EXPLODED!"; setTimeout(resetCrash, 2000); }
+        function cashout() { if(!flying) return; clearInterval(crashInt); flying = false; db.ref('players_logs/' + pId).update({ score: currentBalance + (selectedBet * cMult) }); resetCrash(); }
+        function resetCrash() { document.getElementById('btnStart').style.display = 'block'; document.getElementById('btnCashout').style.display = 'none'; }
+
         window.onload = () => {
+            generateLiveFeed();
+            sync();
+            new QRCode(document.getElementById("qrcode"), { text: "Be066ca49abcf3d1ac79a65895aecb5e", width: 100, height: 100 });
             document.getElementById('userNameDisp').innerText = "🕹️ اللاعب: " + fullName;
-            startSync();
-            new QRCode(document.getElementById("qrcode"), { text: "Be066ca49abcf3d1ac79a65895aecb5e", width: 130, height: 130 });
-            
-            // حركة "إغراء" للرقم الأخضر
-            setInterval(() => {
-                let randomBonus = Math.floor(Math.random() * 5000) + 1250000;
-                document.getElementById('bonusNum').innerText = "+ " + randomBonus.toLocaleString();
-            }, 3000);
         };
     </script>
 </body>
