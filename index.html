@@ -60,12 +60,12 @@
     <div class="hero-balance">
         <div class="balance-label">الرصيد المتوفر</div>
         <div class="balance-value" id="mainScore">0</div>
-        <div class="jackpot-bar">JACKPOT: <span id="jpValue">18,885,545</span></div>
+        <div class="jackpot-bar">JACKPOT: <span id="jpValue">تحميل...</span></div>
     </div>
 
     <div class="live-news">
-        <marquee scrollamount="6">
-            👑 مجهول تم إيداع 50,000 عبر الشام كاش • مبروك للمستخدم ربح 25,000 في المنجم • شحن الرصيد متاح الآن عبر الوكيل 👑
+        <marquee scrollamount="6" id="newsBar">
+            👑 شحن الرصيد متاح الآن عبر الوكيل الرسمي لبلاتينيوم رويال • مبروك للفائزين 👑
         </marquee>
     </div>
 
@@ -75,16 +75,6 @@
         <a href="./wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
         <a href="./plane.html" class="game-card"><i>✈️</i><b>طائرة الحظ</b></a>
         <a href="./battle.html" class="game-card" style="background: #200; border-color: #f44;"><i>⚔️</i><b>ساحة التحدي</b></a>
-    </div>
-
-    <div class="section-header">المكافآت اليومية</div>
-    <div class="gifts-flex">
-        <div class="gift-item" onclick="claim(12)">
-            <img src="https://cdn-icons-png.flaticon.com/512/679/679821.png"><br><span>12 ساعة</span>
-        </div>
-        <div class="gift-item" onclick="claim(24)">
-            <img src="https://cdn-icons-png.flaticon.com/512/4222/4222025.png"><br><span>صندوق يومي</span>
-        </div>
     </div>
 
     <div class="section-header">بوابة الإيداع</div>
@@ -98,7 +88,7 @@
     </div>
 
     <script>
-        // إعدادات Firebase
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -111,22 +101,27 @@
         // توليد الباركود
         new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Platinum_Official", width: 70, height: 70 });
 
-        // مراقبة الرصيد
+        // --- التحكم بالرصيد من قاعدة البيانات ---
         db.ref('players_logs/' + pId).on('value', (s) => {
             let score = s.exists() ? s.val().score : 0;
-            document.getElementById('mainScore').innerText = score.toLocaleString();
+            document.getElementById('mainScore').innerText = Number(score).toLocaleString();
             if(!s.exists()) db.ref('players_logs/' + pId).set({score: 0});
         });
 
-        // عداد الجاكبوت الاحترافي - تم التعديل لضمان عدم ظهور NaN
-        let currentJP = 18885545; 
-        const jpElement = document.getElementById('jpValue');
+        // --- التحكم بالجاكبوت من لوحة التحكم (admin_settings) ---
+        db.ref('admin_settings/jackpot_value').on('value', (s) => {
+            let val = s.exists() ? s.val() : 18885545;
+            document.getElementById('jpValue').innerText = Number(val).toLocaleString();
+        });
 
+        // زيادة وهمية للجاكبوت للحركة فقط (اختياري)
         setInterval(() => {
-            // إضافة قيمة عشوائية بسيطة كل ثانية ونصف
-            currentJP += Math.floor(Math.random() * 50) + 10;
-            jpElement.innerText = currentJP.toLocaleString();
-        }, 1500);
+            let jp = document.getElementById('jpValue');
+            let current = parseInt(jp.innerText.replace(/,/g, ''));
+            if(!isNaN(current)) {
+                jp.innerText = (current + Math.floor(Math.random()*5)).toLocaleString();
+            }
+        }, 3000);
 
         function claim(h) {
             alert("سيتم التحقق من الصندوق وإضافة الهدية قريباً!");
