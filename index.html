@@ -10,38 +10,26 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
         :root { --gold: #ffcc33; --neon: #00ff44; --card-bg: #111; --border: #222; }
-        
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 40px; overflow-x: hidden; }
 
-        /* شاشة طلب الاسم - تظهر فوق كل شيء */
+        /* شاشة الاسم */
         #nameOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        #nameOverlay h2 { color: var(--gold); margin-bottom: 10px; font-weight: 900; }
-        #nameOverlay input { background: #111; border: 1px solid var(--gold); color: #fff; padding: 15px; border-radius: 12px; width: 85%; max-width: 320px; font-family: 'Cairo'; margin-bottom: 20px; text-align: center; font-size: 16px; box-shadow: 0 0 15px rgba(255, 204, 51, 0.2); }
-        #nameOverlay button { background: var(--gold); color: #000; border: none; padding: 12px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
-        #nameOverlay button:active { transform: scale(0.95); }
+        #nameOverlay input { background: #111; border: 1px solid var(--gold); color: #fff; padding: 15px; border-radius: 12px; width: 85%; max-width: 320px; font-family: 'Cairo'; margin-bottom: 20px; text-align: center; font-size: 16px; }
+        #nameOverlay button { background: var(--gold); color: #000; border: none; padding: 12px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; }
 
-        /* الواجهة الرئيسية */
+        /* التنسيقات */
         .top-nav { background: #0a0a0a; padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
         .p-info { display: flex; flex-direction: column; text-align: right; }
         .p-name-tag { font-size: 13px; color: var(--gold); font-weight: bold; }
         .id-tag { font-size: 10px; color: #777; }
         .status-tag { color: var(--neon); font-size: 11px; font-weight: bold; }
-
         .hero-balance { padding: 40px 20px; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); text-align: center; border-bottom: 1px solid var(--border); }
-        .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px; }
+        .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; }
         .balance-value { font-size: 55px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
-        .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); text-shadow: 0 0 10px var(--neon); }
-
-        .live-news { background: #111; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        marquee { color: var(--gold); font-size: 13px; font-weight: bold; }
-
-        .section-header { text-align: right; padding: 25px 20px 10px; font-size: 15px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; }
-        .section-header::before { content: ''; width: 4px; height: 18px; background: var(--gold); display: inline-block; border-radius: 2px; }
-        
+        .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); }
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px; }
         .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; text-decoration: none; color: #fff; text-align: center; }
         .game-card i { font-size: 35px; margin-bottom: 10px; display: block; }
-
         .deposit-box { background: #fff; color: #000; margin: 25px 20px; padding: 20px; border-radius: 25px; display: flex; align-items: center; justify-content: space-between; }
         #qrcode { background: #fff; padding: 5px; border-radius: 10px; }
     </style>
@@ -49,61 +37,52 @@
 <body>
 
     <div id="nameOverlay">
-        <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
-        <h2>PLATINUM ROYAL</h2>
-        <p style="color: #888; margin-bottom: 20px;">يُرجى إدخال اسمك الثلاثي لفتح الحساب</p>
+        <h2>PLATINUM ROYAL 👑</h2>
+        <p>يُرجى إدخال اسمك الثلاثي لفتح الحساب</p>
         <input type="text" id="fullNameInput" placeholder="الاسم - الأب - الكنية">
         <button onclick="saveName()">بدء اللعب الآن</button>
     </div>
 
     <div class="top-nav">
         <div class="p-info">
-            <span class="p-name-tag" id="pNameDisp">جارِ التحميل...</span>
+            <span class="p-name-tag" id="pNameDisp">زائر</span>
             <span class="id-tag">ID: <span id="pIdDisp">----</span></span>
         </div>
-        <div class="status-tag">● متصل بالخادم</div>
+        <div class="status-tag">● متصل بالتحكم</div>
     </div>
 
     <div class="hero-balance">
-        <div class="balance-label">الرصيد المتوفر</div>
+        <div class="balance-label">الرصيد في المحفظة</div>
         <div class="balance-value" id="mainScore">0</div>
-        <div class="jackpot-bar">JACKPOT: <span id="jpValue">تحميل...</span></div>
+        <div class="jackpot-bar">JACKPOT: <span id="jpValue">18,885,545</span></div>
     </div>
 
-    <div class="live-news">
-        <marquee scrollamount="5">👑 شحن الرصيد متوفر الآن لدى الوكيل المعتمد لبلاتينيوم • يرجى التأكد من اسمك الثلاثي عند الإيداع 👑</marquee>
-    </div>
-
-    <div class="section-header">الألعاب المتاحة</div>
-    <div class="games-grid">
-        <a href="./mines.html" class="game-card"><i>⛏️</i><b>المنجم</b></a>
-        <a href="./wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
-        <a href="./plane.html" class="game-card"><i>✈️</i><b>الطيار</b></a>
-        <a href="./battle.html" class="game-card"><i>⚔️</i><b>التحدي</b></a>
+    <div class="games-grid" style="margin-top:20px;">
+        <a href="mines.html" class="game-card"><i>⛏️</i><b>المنجم</b></a>
+        <a href="wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
     </div>
 
     <div class="deposit-box">
         <div id="qrcode"></div>
         <div style="text-align: right;">
-            <h4 style="margin:0;">الشام كاش 💳</h4>
-            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">المسؤول: Platinum_Vip</div>
+            <h4 style="margin:0;">بوابة الإيداع 💳</h4>
+            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">Admin: Platinum_Vip</div>
         </div>
     </div>
 
     <script>
-        // إعدادات Firebase
+        // إعدادات Firebase الخاصة بك
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // نظام الهوية
+        // نظام الهوية والاسم
         let pId = localStorage.getItem('pId') || "USER_" + Math.floor(Math.random()*99999);
         let fullName = localStorage.getItem('fullName');
-        
         localStorage.setItem('pId', pId);
         document.getElementById('pIdDisp').innerText = pId;
 
-        // التحقق من وجود الاسم
+        // التحقق من الاسم
         if (!fullName) {
             document.getElementById('nameOverlay').style.display = 'flex';
         } else {
@@ -114,42 +93,38 @@
         function saveName() {
             let input = document.getElementById('fullNameInput').value;
             if (input.trim().split(" ").length < 3) {
-                alert("يرجى إدخال اسمك الثلاثي (الاسم، الأب، الكنية)");
+                alert("يرجى إدخال اسمك الثلاثي");
                 return;
             }
             localStorage.setItem('fullName', input);
             fullName = input;
-            document.getElementById('pNameDisp').innerText = fullName;
             document.getElementById('nameOverlay').style.display = 'none';
+            document.getElementById('pNameDisp').innerText = fullName;
             
-            // تسجيل اللاعب في قاعدة البيانات
+            // إنشاء سجل في القاعدة برصيد 0
             db.ref('players_logs/' + pId).set({
                 name: fullName,
-                score: 0,
-                joinedAt: new Date().toLocaleString()
+                score: 0
             });
             startSync();
         }
 
         function startSync() {
-            // مزامنة الرصيد من Firebase
-            db.ref('players_logs/' + pId).on('value', (s) => {
-                if(s.exists()){
-                    document.getElementById('mainScore').innerText = Number(s.val().score).toLocaleString();
-                } else {
-                    db.ref('players_logs/' + pId).set({ name: fullName, score: 0 });
+            // الربط اللحظي مع لوحة التحكم للرصيد
+            db.ref('players_logs/' + pId + '/score').on('value', (s) => {
+                let currentScore = s.exists() ? s.val() : 0;
+                document.getElementById('mainScore').innerText = Number(currentScore).toLocaleString();
+            });
+
+            // الربط اللحظي للجاكبوت من القاعدة
+            db.ref('admin_settings/jackpot_value').on('value', (s) => {
+                if(s.exists()) {
+                    document.getElementById('jpValue').innerText = Number(s.val()).toLocaleString();
                 }
             });
         }
 
-        // الجاكبوت العام من لوحة التحكم
-        db.ref('admin_settings/jackpot_value').on('value', (s) => {
-            let val = s.exists() ? s.val() : 18885545;
-            document.getElementById('jpValue').innerText = Number(val).toLocaleString();
-        });
-
-        // الباركود
-        new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Platinum_Official", width: 70, height: 70 });
+        new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Admin_Platinum", width: 70, height: 70 });
     </script>
 </body>
 </html>
