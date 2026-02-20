@@ -3,128 +3,160 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL | المنصة الرسمية 👑</title>
+    <title>لعبة المنجم | PLATINUM ROYAL</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap');
-        :root { --gold: #ffcc33; --neon: #00ff44; --card-bg: #111; --border: #222; }
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 40px; overflow-x: hidden; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; text-align: center; overflow-x: hidden; }
+        
+        /* الهيدر */
+        .game-header { padding: 20px; background: #0a0a0a; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        .balance-display { color: #ffcc33; font-weight: 900; font-size: 18px; }
+        .back-link { color: #777; text-decoration: none; font-size: 14px; border: 1px solid #333; padding: 5px 10px; border-radius: 5px; }
 
-        /* شاشة الاسم */
-        #nameOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-        #nameOverlay input { background: #111; border: 1px solid var(--gold); color: #fff; padding: 15px; border-radius: 12px; width: 85%; max-width: 320px; font-family: 'Cairo'; margin-bottom: 20px; text-align: center; font-size: 16px; }
-        #nameOverlay button { background: var(--gold); color: #000; border: none; padding: 12px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; }
+        /* منطقة اللعب */
+        .grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; padding: 15px; max-width: 350px; margin: 20px auto; }
+        .cell { aspect-ratio: 1; background: #1a1a1a; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; border: 1px solid #333; transition: 0.2s; }
+        .cell.open { background: #252525; border-color: #444; }
+        .cell.diamond { color: #00ff44; text-shadow: 0 0 10px #00ff44; border-color: #00ff44; }
+        .cell.bomb { color: #ff4444; text-shadow: 0 0 10px #ff4444; border-color: #ff4444; }
 
-        /* التنسيقات */
-        .top-nav { background: #0a0a0a; padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
-        .p-info { display: flex; flex-direction: column; text-align: right; }
-        .p-name-tag { font-size: 13px; color: var(--gold); font-weight: bold; }
-        .id-tag { font-size: 10px; color: #777; }
-        .status-tag { color: var(--neon); font-size: 11px; font-weight: bold; }
-        .hero-balance { padding: 40px 20px; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); text-align: center; border-bottom: 1px solid var(--border); }
-        .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; }
-        .balance-value { font-size: 55px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
-        .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); }
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px; }
-        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; text-decoration: none; color: #fff; text-align: center; }
-        .game-card i { font-size: 35px; margin-bottom: 10px; display: block; }
-        .deposit-box { background: #fff; color: #000; margin: 25px 20px; padding: 20px; border-radius: 25px; display: flex; align-items: center; justify-content: space-between; }
-        #qrcode { background: #fff; padding: 5px; border-radius: 10px; }
+        /* التحكم */
+        .game-controls { padding: 10px; background: #0a0a0a; border-radius: 20px; margin: 0 20px; border: 1px solid #222; }
+        input { background: #000; border: 1px solid #ffcc33; color: #fff; padding: 12px; border-radius: 10px; width: 60%; text-align: center; font-size: 18px; margin-bottom: 15px; outline: none; }
+        .btns-row { display: flex; gap: 10px; justify-content: center; padding: 0 20px; }
+        button { flex: 1; padding: 12px; border-radius: 10px; font-weight: bold; font-family: 'Cairo'; border: none; cursor: pointer; font-size: 16px; }
+        #startBtn { background: #ffcc33; color: #000; }
+        #cashoutBtn { background: #00ff44; color: #000; display: none; }
+        
+        .status-msg { margin: 15px; font-size: 14px; color: #aaa; min-height: 20px; }
     </style>
 </head>
 <body>
 
-    <div id="nameOverlay">
-        <h2>PLATINUM ROYAL 👑</h2>
-        <p>يُرجى إدخال اسمك الثلاثي لفتح الحساب</p>
-        <input type="text" id="fullNameInput" placeholder="الاسم - الأب - الكنية">
-        <button onclick="saveName()">بدء اللعب الآن</button>
+    <div class="game-header">
+        <a href="index.html" class="back-link">⬅ رجوع</a>
+        <div class="balance-display">رصيدك: <span id="userScore">0</span></div>
     </div>
 
-    <div class="top-nav">
-        <div class="p-info">
-            <span class="p-name-tag" id="pNameDisp">زائر</span>
-            <span class="id-tag">ID: <span id="pIdDisp">----</span></span>
-        </div>
-        <div class="status-tag">● متصل بالتحكم</div>
-    </div>
+    <h2 style="color: #ffcc33; margin-top: 20px;">⛏️ منجم بلاتينيوم</h2>
 
-    <div class="hero-balance">
-        <div class="balance-label">الرصيد في المحفظة</div>
-        <div class="balance-value" id="mainScore">0</div>
-        <div class="jackpot-bar">JACKPOT: <span id="jpValue">18,885,545</span></div>
-    </div>
-
-    <div class="games-grid" style="margin-top:20px;">
-        <a href="mines.html" class="game-card"><i>⛏️</i><b>المنجم</b></a>
-        <a href="wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
-    </div>
-
-    <div class="deposit-box">
-        <div id="qrcode"></div>
-        <div style="text-align: right;">
-            <h4 style="margin:0;">بوابة الإيداع 💳</h4>
-            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">Admin: Platinum_Vip</div>
+    <div class="game-controls">
+        <p style="font-size: 12px; color: #777;">حدد مبلغ الرهان</p>
+        <input type="number" id="betInput" value="1000" min="100">
+        <div class="btns-row">
+            <button id="startBtn" onclick="startGame()">بدء التعدين</button>
+            <button id="cashoutBtn" onclick="cashout()">سحب الأرباح (0)</button>
         </div>
     </div>
+
+    <div class="status-msg" id="statusMsg">ادخل مبلغ الرهان واضغط بدء اللعب</div>
+
+    <div class="grid" id="grid"></div>
 
     <script>
-        // إعدادات Firebase الخاصة بك
+        // إعدادات Firebase (نفس إعدادات تطبيقك)
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // نظام الهوية والاسم
-        let pId = localStorage.getItem('pId') || "USER_" + Math.floor(Math.random()*99999);
-        let fullName = localStorage.getItem('fullName');
-        localStorage.setItem('pId', pId);
-        document.getElementById('pIdDisp').innerText = pId;
+        const pId = localStorage.getItem('pId');
+        let currentBalance = 0;
+        let isPlaying = false;
+        let bombs = [];
+        let diamondsCount = 0;
+        let currentBet = 0;
 
-        // التحقق من الاسم
-        if (!fullName) {
-            document.getElementById('nameOverlay').style.display = 'flex';
-        } else {
-            document.getElementById('pNameDisp').innerText = fullName;
-            startSync();
+        // جلب الرصيد
+        db.ref('players_logs/' + pId).on('value', (s) => {
+            if(s.exists()){
+                currentBalance = s.val().score;
+                document.getElementById('userScore').innerText = currentBalance.toLocaleString();
+            }
+        });
+
+        function createGrid() {
+            const gridDiv = document.getElementById('grid');
+            gridDiv.innerHTML = '';
+            for (let i = 0; i < 25; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                cell.dataset.index = i;
+                cell.onclick = () => clickCell(i, cell);
+                gridDiv.appendChild(cell);
+            }
         }
 
-        function saveName() {
-            let input = document.getElementById('fullNameInput').value;
-            if (input.trim().split(" ").length < 3) {
-                alert("يرجى إدخال اسمك الثلاثي");
+        function startGame() {
+            currentBet = parseInt(document.getElementById('betInput').value);
+            if (currentBet > currentBalance || currentBet < 100) {
+                alert("رصيدك غير كافٍ أو الرهان قليل جداً!");
                 return;
             }
-            localStorage.setItem('fullName', input);
-            fullName = input;
-            document.getElementById('nameOverlay').style.display = 'none';
-            document.getElementById('pNameDisp').innerText = fullName;
+
+            // خصم الرصيد من Firebase
+            db.ref('players_logs/' + pId + '/score').set(currentBalance - currentBet);
+
+            isPlaying = true;
+            diamondsCount = 0;
+            bombs = [];
+            while(bombs.length < 3) { // 3 قنابل في اللعبة
+                let r = Math.floor(Math.random() * 25);
+                if(!bombs.includes(r)) bombs.push(r);
+            }
+
+            createGrid();
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('cashoutBtn').style.display = 'block';
+            document.getElementById('cashoutBtn').innerText = "سحب الأرباح (0)";
+            document.getElementById('statusMsg').innerText = "تم بدء اللعب.. احذر القنابل!";
+        }
+
+        function clickCell(index, cell) {
+            if (!isPlaying || cell.classList.contains('open')) return;
+
+            cell.classList.add('open');
+            if (bombs.includes(index)) {
+                cell.innerHTML = "💣";
+                cell.classList.add('bomb');
+                endGame(false);
+            } else {
+                cell.innerHTML = "💎";
+                cell.classList.add('diamond');
+                diamondsCount++;
+                let profit = calculateProfit();
+                document.getElementById('cashoutBtn').innerText = `سحب ${profit.toLocaleString()}`;
+                document.getElementById('statusMsg').innerText = `لقد وجدت ${diamondsCount} من الألماس!`;
+            }
+        }
+
+        function calculateProfit() {
+            // معادلة ربح بسيطة: كل ألماسة تزيد 25% من الرهان
+            return Math.floor(currentBet * (1 + (diamondsCount * 0.25)));
+        }
+
+        function cashout() {
+            if (!isPlaying || diamondsCount === 0) return;
+            let finalWin = calculateProfit();
+            db.ref('players_logs/' + pId + '/score').set(currentBalance + finalWin);
+            alert("مبروك! ربحت: " + finalWin);
+            endGame(true);
+        }
+
+        function endGame(win) {
+            isPlaying = false;
+            document.getElementById('startBtn').style.display = 'inline-block';
+            document.getElementById('cashoutBtn').style.display = 'none';
+            if (!win) document.getElementById('statusMsg').innerText = "للأسف! انفجرت القنبلة وخسرت الرهان.";
             
-            // إنشاء سجل في القاعدة برصيد 0
-            db.ref('players_logs/' + pId).set({
-                name: fullName,
-                score: 0
-            });
-            startSync();
-        }
-
-        function startSync() {
-            // الربط اللحظي مع لوحة التحكم للرصيد
-            db.ref('players_logs/' + pId + '/score').on('value', (s) => {
-                let currentScore = s.exists() ? s.val() : 0;
-                document.getElementById('mainScore').innerText = Number(currentScore).toLocaleString();
-            });
-
-            // الربط اللحظي للجاكبوت من القاعدة
-            db.ref('admin_settings/jackpot_value').on('value', (s) => {
-                if(s.exists()) {
-                    document.getElementById('jpValue').innerText = Number(s.val()).toLocaleString();
-                }
+            // كشف أماكن القنابل
+            bombs.forEach(b => {
+                document.querySelector(`[data-index="${b}"]`).innerHTML = "💣";
             });
         }
 
-        new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Admin_Platinum", width: 70, height: 70 });
+        createGrid();
     </script>
 </body>
 </html>
