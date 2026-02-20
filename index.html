@@ -13,48 +13,55 @@
         
         body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; padding-bottom: 40px; overflow-x: hidden; }
 
-        /* 1. الشريط العلوي */
+        /* شاشة طلب الاسم - تظهر فوق كل شيء */
+        #nameOverlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1a1a1a 0%, #000 100%); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+        #nameOverlay h2 { color: var(--gold); margin-bottom: 10px; font-weight: 900; }
+        #nameOverlay input { background: #111; border: 1px solid var(--gold); color: #fff; padding: 15px; border-radius: 12px; width: 85%; max-width: 320px; font-family: 'Cairo'; margin-bottom: 20px; text-align: center; font-size: 16px; box-shadow: 0 0 15px rgba(255, 204, 51, 0.2); }
+        #nameOverlay button { background: var(--gold); color: #000; border: none; padding: 12px 40px; border-radius: 12px; font-weight: 900; cursor: pointer; transition: 0.3s; }
+        #nameOverlay button:active { transform: scale(0.95); }
+
+        /* الواجهة الرئيسية */
         .top-nav { background: #0a0a0a; padding: 12px 20px; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); align-items: center; }
-        .id-tag { font-size: 11px; color: #777; border: 1px solid #333; padding: 2px 8px; border-radius: 5px; }
+        .p-info { display: flex; flex-direction: column; text-align: right; }
+        .p-name-tag { font-size: 13px; color: var(--gold); font-weight: bold; }
+        .id-tag { font-size: 10px; color: #777; }
         .status-tag { color: var(--neon); font-size: 11px; font-weight: bold; }
 
-        /* 2. لوحة الرصيد */
         .hero-balance { padding: 40px 20px; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); text-align: center; border-bottom: 1px solid var(--border); }
         .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px; }
-        .balance-value { font-size: 60px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
+        .balance-value { font-size: 55px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
         .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); text-shadow: 0 0 10px var(--neon); }
 
-        /* 3. شريط مجهول */
         .live-news { background: #111; padding: 10px 0; border-bottom: 1px solid var(--border); }
-        marquee { color: var(--gold); font-size: 14px; font-weight: bold; }
+        marquee { color: var(--gold); font-size: 13px; font-weight: bold; }
 
-        /* 4. العناوين والأقسام */
         .section-header { text-align: right; padding: 25px 20px 10px; font-size: 15px; font-weight: 900; color: #fff; display: flex; align-items: center; gap: 8px; }
         .section-header::before { content: ''; width: 4px; height: 18px; background: var(--gold); display: inline-block; border-radius: 2px; }
         
         .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 20px; }
-        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; text-decoration: none; color: #fff; text-align: center; transition: 0.3s; }
-        .game-card:hover { border-color: var(--gold); }
+        .game-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 20px; text-decoration: none; color: #fff; text-align: center; }
         .game-card i { font-size: 35px; margin-bottom: 10px; display: block; }
-        
-        .mines-card { background: linear-gradient(135deg, #111 0%, #1a1a1a 100%); position: relative; overflow: hidden; }
-        .mines-card::after { content: 'HOT'; position: absolute; top: 10px; right: -20px; background: #ff4444; font-size: 10px; padding: 2px 25px; transform: rotate(45deg); font-weight: bold; }
 
-        /* 5. المكافآت */
-        .gifts-flex { display: flex; gap: 15px; padding: 0 20px; }
-        .gift-item { flex: 1; background: var(--card-bg); border: 1px solid var(--border); border-radius: 15px; padding: 15px; text-align: center; cursor: pointer; }
-        .gift-item img { width: 40px; margin-bottom: 5px; }
-
-        /* 6. مركز الشحن */
         .deposit-box { background: #fff; color: #000; margin: 25px 20px; padding: 20px; border-radius: 25px; display: flex; align-items: center; justify-content: space-between; }
         #qrcode { background: #fff; padding: 5px; border-radius: 10px; }
     </style>
 </head>
 <body>
 
+    <div id="nameOverlay">
+        <div style="font-size: 50px; margin-bottom: 10px;">👑</div>
+        <h2>PLATINUM ROYAL</h2>
+        <p style="color: #888; margin-bottom: 20px;">يُرجى إدخال اسمك الثلاثي لفتح الحساب</p>
+        <input type="text" id="fullNameInput" placeholder="الاسم - الأب - الكنية">
+        <button onclick="saveName()">بدء اللعب الآن</button>
+    </div>
+
     <div class="top-nav">
-        <div class="id-tag">USER ID: <span id="pIdDisp">----</span></div>
-        <div class="status-tag">● SERVER ONLINE</div>
+        <div class="p-info">
+            <span class="p-name-tag" id="pNameDisp">جارِ التحميل...</span>
+            <span class="id-tag">ID: <span id="pIdDisp">----</span></span>
+        </div>
+        <div class="status-tag">● متصل بالخادم</div>
     </div>
 
     <div class="hero-balance">
@@ -64,68 +71,85 @@
     </div>
 
     <div class="live-news">
-        <marquee scrollamount="6" id="newsBar">
-            👑 شحن الرصيد متاح الآن عبر الوكيل الرسمي لبلاتينيوم رويال • مبروك للفائزين 👑
-        </marquee>
+        <marquee scrollamount="5">👑 شحن الرصيد متوفر الآن لدى الوكيل المعتمد لبلاتينيوم • يرجى التأكد من اسمك الثلاثي عند الإيداع 👑</marquee>
     </div>
 
-    <div class="section-header">الألعاب المتوفرة</div>
+    <div class="section-header">الألعاب المتاحة</div>
     <div class="games-grid">
-        <a href="./mines.html" class="game-card mines-card"><i>⛏️</i><b>لعبة المنجم</b></a>
+        <a href="./mines.html" class="game-card"><i>⛏️</i><b>المنجم</b></a>
         <a href="./wheel.html" class="game-card"><i>🎡</i><b>عجلة الحظ</b></a>
-        <a href="./plane.html" class="game-card"><i>✈️</i><b>طائرة الحظ</b></a>
-        <a href="./battle.html" class="game-card" style="background: #200; border-color: #f44;"><i>⚔️</i><b>ساحة التحدي</b></a>
+        <a href="./plane.html" class="game-card"><i>✈️</i><b>الطيار</b></a>
+        <a href="./battle.html" class="game-card"><i>⚔️</i><b>التحدي</b></a>
     </div>
 
-    <div class="section-header">بوابة الإيداع</div>
     <div class="deposit-box">
         <div id="qrcode"></div>
         <div style="text-align: right;">
             <h4 style="margin:0;">الشام كاش 💳</h4>
-            <p style="margin:2px 0; font-size:12px;">الوكيل المعتمد لبلاتينيوم</p>
-            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">Admin: Platinum_Vip</div>
+            <div style="background:#000; color:#fff; font-size:10px; padding:4px 8px; border-radius:5px; margin-top:5px; display:inline-block;">المسؤول: Platinum_Vip</div>
         </div>
     </div>
 
     <script>
-        // إعدادات Firebase الخاصة بك
+        // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // معرف اللاعب
-        let pId = localStorage.getItem('pName') || "ID_" + Math.floor(Math.random()*9999);
-        localStorage.setItem('pName', pId);
+        // نظام الهوية
+        let pId = localStorage.getItem('pId') || "USER_" + Math.floor(Math.random()*99999);
+        let fullName = localStorage.getItem('fullName');
+        
+        localStorage.setItem('pId', pId);
         document.getElementById('pIdDisp').innerText = pId;
 
-        // توليد الباركود
-        new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Platinum_Official", width: 70, height: 70 });
+        // التحقق من وجود الاسم
+        if (!fullName) {
+            document.getElementById('nameOverlay').style.display = 'flex';
+        } else {
+            document.getElementById('pNameDisp').innerText = fullName;
+            startSync();
+        }
 
-        // --- التحكم بالرصيد من قاعدة البيانات ---
-        db.ref('players_logs/' + pId).on('value', (s) => {
-            let score = s.exists() ? s.val().score : 0;
-            document.getElementById('mainScore').innerText = Number(score).toLocaleString();
-            if(!s.exists()) db.ref('players_logs/' + pId).set({score: 0});
-        });
+        function saveName() {
+            let input = document.getElementById('fullNameInput').value;
+            if (input.trim().split(" ").length < 3) {
+                alert("يرجى إدخال اسمك الثلاثي (الاسم، الأب، الكنية)");
+                return;
+            }
+            localStorage.setItem('fullName', input);
+            fullName = input;
+            document.getElementById('pNameDisp').innerText = fullName;
+            document.getElementById('nameOverlay').style.display = 'none';
+            
+            // تسجيل اللاعب في قاعدة البيانات
+            db.ref('players_logs/' + pId).set({
+                name: fullName,
+                score: 0,
+                joinedAt: new Date().toLocaleString()
+            });
+            startSync();
+        }
 
-        // --- التحكم بالجاكبوت من لوحة التحكم (admin_settings) ---
+        function startSync() {
+            // مزامنة الرصيد من Firebase
+            db.ref('players_logs/' + pId).on('value', (s) => {
+                if(s.exists()){
+                    document.getElementById('mainScore').innerText = Number(s.val().score).toLocaleString();
+                } else {
+                    db.ref('players_logs/' + pId).set({ name: fullName, score: 0 });
+                }
+            });
+        }
+
+        // الجاكبوت العام من لوحة التحكم
         db.ref('admin_settings/jackpot_value').on('value', (s) => {
             let val = s.exists() ? s.val() : 18885545;
             document.getElementById('jpValue').innerText = Number(val).toLocaleString();
         });
 
-        // زيادة وهمية للجاكبوت للحركة فقط (اختياري)
-        setInterval(() => {
-            let jp = document.getElementById('jpValue');
-            let current = parseInt(jp.innerText.replace(/,/g, ''));
-            if(!isNaN(current)) {
-                jp.innerText = (current + Math.floor(Math.random()*5)).toLocaleString();
-            }
-        }, 3000);
-
-        function claim(h) {
-            alert("سيتم التحقق من الصندوق وإضافة الهدية قريباً!");
-        }
+        // الباركود
+        new QRCode(document.getElementById("qrcode"), { text: "ShamCash_Platinum_Official", width: 70, height: 70 });
     </script>
 </body>
 </html>
