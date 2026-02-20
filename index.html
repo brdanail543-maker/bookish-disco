@@ -3,209 +3,174 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platinum Royal | الواجهة الرئيسية</title>
+    <title>Platinum Royal | المنصة الملكية</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root {
-            --gold: #ffca28;
-            --green: #00ff44;
-            --bg: #0a0a0a;
-            --card: #161616;
-            --text: #ffffff;
-        }
+        :root { --gold: #ffca28; --green: #00ff44; --red: #ff4444; --bg: #0a0a0a; --card: #161616; }
+        body { background: var(--bg); color: white; text-align: center; font-family: sans-serif; margin: 0; overflow-x: hidden; }
 
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            text-align: center;
-        }
+        /* شريط الـ 50 شخص العلوي */
+        .live-bar { background: #111; color: var(--green); padding: 5px; font-size: 11px; white-space: nowrap; overflow: hidden; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 2000; }
+        .scrolling-text { display: inline-block; animation: scroll 30s linear infinite; }
+        @keyframes scroll { from { transform: translateX(102%); } to { transform: translateX(-102%); } }
 
-        /* شريط الإشعارات العلوي */
-        .live-ticker {
-            background: #111;
-            color: var(--green);
-            padding: 8px 0;
-            font-size: 12px;
-            border-bottom: 1px solid #222;
-            overflow: hidden;
-            white-space: nowrap;
-        }
-
-        .ticker-wrapper {
-            display: inline-block;
-            animation: scroll 25s linear infinite;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateX(100%); }
-            100% { transform: translateX(-100%); }
-        }
-
-        /* الهيدر الملكي */
-        .main-header {
-            background: linear-gradient(180deg, #1a1a1a 0%, #000 100%);
-            padding: 25px 15px;
-            border-bottom: 2px solid var(--gold);
-        }
-
-        .balance-label { font-size: 14px; color: #888; margin-bottom: 5px; }
-        .balance-amount { font-size: 3rem; color: var(--gold); font-weight: bold; font-family: monospace; }
-        .attractive-num { color: var(--green); font-size: 1.2rem; font-weight: bold; text-shadow: 0 0 10px rgba(0,255,68,0.4); }
+        /* الهيدر والرصيد */
+        .header { background: #000; padding: 20px; border-bottom: 2px solid var(--gold); }
+        #balDisp { font-size: 2.8rem; color: var(--gold); font-weight: bold; font-family: monospace; }
+        .attractive-num { color: var(--green); font-size: 1.3rem; font-weight: bold; margin-top: 8px; text-shadow: 0 0 10px #00ff44; }
 
         /* تنظيم الأقسام */
-        .container { padding: 20px 15px; }
-        .section-title {
-            text-align: right;
-            color: var(--gold);
-            font-size: 1.1rem;
-            margin: 20px 0 15px;
-            padding-right: 10px;
-            border-right: 4px solid var(--gold);
-        }
+        .section-title { color: var(--gold); margin: 25px 0 10px; font-weight: bold; border-right: 4px solid var(--gold); padding-right: 12px; text-align: right; margin-right: 15px; }
 
         /* شبكة الألعاب */
-        .games-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-        }
+        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px 20px; }
+        .game-card { background: var(--card); border: 1px solid #333; padding: 20px; border-radius: 20px; cursor: pointer; transition: 0.3s; }
+        .game-card i { font-size: 40px; display: block; margin-bottom: 10px; }
 
-        .game-card {
-            background: var(--card);
-            border: 1px solid #333;
-            border-radius: 20px;
-            padding: 25px 10px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
+        /* الواجهات المدمجة */
+        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; flex-direction: column; }
+        .game-header { padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
+        
+        /* لوحة الرهان */
+        .bet-panel { background: #111; padding: 10px; display: flex; justify-content: center; gap: 8px; }
+        .bet-btn { background: #222; border: 1px solid var(--gold); color: white; padding: 10px; border-radius: 8px; flex: 1; font-size: 12px; }
+        .bet-btn.active { background: var(--gold); color: black; font-weight: bold; }
 
-        .game-card:active {
-            transform: scale(0.95);
-            border-color: var(--gold);
-        }
-
-        .game-card i {
-            font-size: 45px;
-            display: block;
-            margin-bottom: 12px;
-        }
-
-        .game-card b {
-            font-size: 1.1rem;
-            display: block;
-        }
-
-        .game-card span {
-            font-size: 10px;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        /* شام كاش من الأسفل */
-        .footer-payment {
-            margin-top: 40px;
-            padding: 20px;
-            background: #111;
-            border-top: 1px solid #222;
-        }
-
-        .sham-cash-title { color: var(--green); font-weight: bold; margin-bottom: 10px; }
-        .qr-placeholder {
-            background: #fff;
-            width: 120px;
-            height: 120px;
-            margin: 0 auto 15px;
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #000;
-            font-weight: bold;
-        }
+        /* شام كاش الأسفل */
+        .footer-sham { background: #000; padding: 25px; border-top: 1px solid #222; margin-top: 30px; }
     </style>
 </head>
 <body>
 
-    <div class="live-ticker">
-        <div class="ticker-wrapper" id="ticker">
-            🔥 أحمد قام بإيداع 20,000 SYP | 💎 سارة ربحت 50,000 SYP في المنجم | ⚡ لؤي سحب 15,000 SYP | 🚀 فهد كاش آوت 2.5x
+    <div class="live-bar">
+        <div class="scrolling-text" id="liveText">تحميل نشاط اللاعبين...</div>
+    </div>
+
+    <div class="header">
+        <div style="color: #888; font-size: 12px;">الرصيد الكلي</div>
+        <div id="balDisp">0</div>
+        <div class="attractive-num">الحد اليومي: 1,500,000</div>
+    </div>
+
+    <div class="section-title">صالة الألعاب الاستراتيجية</div>
+    <div class="games-grid">
+        <div class="game-card" onclick="openGame('mines')"><i>💣</i><b>المنجم (25)</b></div>
+        <div class="game-card" onclick="openGame('crash')"><i>🚀</i><b>الطيارة</b></div>
+        <div class="game-card" onclick="alert('العجلة قيد الصيانة')"><i>🎡</i><b>العجلة</b></div>
+        <div class="game-card" onclick="alert('ساحة القتال قيد الصيانة')"><i>⚔️</i><b>ساحة القتال</b></div>
+    </div>
+
+    <div class="section-title">الهدايا</div>
+    <div class="games-grid">
+        <div class="game-card" style="grid-column: span 2;" onclick="checkGift()">
+            <i>🎁</i><b>صندوق الـ 100K الملكي</b>
         </div>
     </div>
 
-    <div class="main-header">
-        <div class="balance-label">الرصيد الكلي المتاح</div>
-        <div class="balance-amount">1,240,500</div>
-        <div class="attractive-num">حد السحب اليومي: 1,500,000 SYP</div>
+    <div class="footer-sham">
+        <h3 style="color:var(--green)">SHAM CASH</h3>
+        <div id="qrcode" style="background:white; padding:10px; display:inline-block; border-radius:10px; margin:10px;"></div>
+        <div style="font-family:monospace; color:#888;">ID: Be066ca49abcf3d1ac79a65895aecb5e</div>
     </div>
 
-    <div class="container">
-        <div class="section-title">صالة الألعاب الملكية</div>
-        <div class="games-grid">
-            <div class="game-card" onclick="openMines()">
-                <i>💣</i>
-                <b>المنجم</b>
-                <span>Mines Game</span>
-            </div>
-            
-            <div class="game-card" onclick="openWheel()">
-                <i>🎡</i>
-                <b>العجلة</b>
-                <span>Lucky Wheel</span>
-            </div>
-
-            <div class="game-card" onclick="openBattle()">
-                <i>⚔️</i>
-                <b>ساحة القتال</b>
-                <span>Battle Arena</span>
-            </div>
-
-            <div class="game-card" onclick="openPlane()">
-                <i>🚀</i>
-                <b>الطائرة</b>
-                <span>Crash Aviator</span>
-            </div>
+    <div id="minesOverlay" class="overlay">
+        <div class="game-header">
+            <span style="color:var(--gold)">الرصيد: <span class="localBal">0</span></span>
+            <button onclick="finishMines()" style="background:var(--green); border:none; padding:8px 15px; border-radius:5px; font-weight:bold;">إنهاء وسحب الأرباح</button>
         </div>
-
-        <div class="section-title">الهدايا والصناديق</div>
-        <div class="games-grid">
-            <div class="game-card" style="grid-column: span 2; padding: 15px; border-style: dashed;">
-                <i>🎁</i>
-                <b>صندوق الـ 100K الملكي</b>
-                <span style="color: var(--red);">مغلق - اشحن لفتح الصندوق</span>
-            </div>
+        <div class="bet-panel">
+            <button class="bet-btn active" onclick="setBet(2000, this)">2K</button>
+            <button class="bet-btn" onclick="setBet(5000, this)">5K</button>
+            <button class="bet-btn" onclick="setBet(10000, this)">10K</button>
         </div>
-    </div>
-
-    <div class="footer-payment">
-        <div class="sham-cash-title">الدفع والشحن عبر شام كاش</div>
-        <div class="qr-placeholder">QR CODE</div>
-        <div style="font-family: monospace; font-size: 12px; color: #888;">ID: Be066ca49abcf3d1ac79a65895aecb5e</div>
+        <div style="margin-top:20px; color:var(--gold)">أرباح الدور: <span id="sessionProfit">0</span></div>
+        <div id="mineGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; width:90%; margin:20px auto; max-width:320px;"></div>
     </div>
 
     <script>
-        // وظائف وهمية لفتح الألعاب
-        function openMines() { alert('جاري تحويلك للعبة المنجم...'); }
-        function openWheel() { alert('جاري تحويلك للعجلة...'); }
-        function openBattle() { alert('جاري دخول ساحة القتال...'); }
-        function openPlane() { alert('جاري إقلاع الطائرة...'); }
+        const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-        // تحديث شريط اللاعبين بأسماء وحركات عشوائية (50 لاعب)
-        const names = ["علي", "عمر", "جاد", "ليلى", "نور", "بشار", "ريان", "سامي", "هيا"];
-        const actions = ["سحب", "إيداع", "ربح", "كاش آوت"];
-        let feed = "";
-        for(let i=0; i<50; i++) {
-            let n = names[Math.floor(Math.random()*names.length)] + " " + (Math.floor(Math.random()*90)+10);
-            let a = actions[Math.floor(Math.random()*actions.length)];
-            let val = (Math.floor(Math.random()*100)+1) * 1000;
-            feed += ` ⚡ ${n} قام بـ ${a} ${val.toLocaleString()} SYP | `;
+        let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
+        localStorage.setItem('pId', pId);
+        let currentBalance = 0;
+        let selectedBet = 2000;
+        let sessionEarned = 0;
+
+        // شريط الـ 50 لاعب
+        function loadLive() {
+            const names = ["علي", "أحمد", "ليث", "سارة", "فهد", "محمد", "نور", "ياسين"];
+            let t = "";
+            for(let i=0; i<50; i++) {
+                let n = names[Math.floor(Math.random()*names.length)] + Math.floor(Math.random()*99);
+                t += ` 🔥 ${n} سحب ${Math.floor(Math.random()*40000)} | `;
+            }
+            document.getElementById('liveText').innerText = t;
         }
-        document.getElementById('ticker').innerText = feed;
-    </script>
 
+        function sync() {
+            db.ref('players_logs/' + pId).on('value', (s) => {
+                if(s.exists()){
+                    currentBalance = s.val().score;
+                    document.getElementById('balDisp').innerText = Number(currentBalance).toLocaleString();
+                    document.querySelectorAll('.localBal').forEach(e => e.innerText = Number(currentBalance).toLocaleString());
+                }
+            });
+        }
+
+        function setBet(a, b) {
+            selectedBet = a;
+            document.querySelectorAll('.bet-btn').forEach(x => x.classList.remove('active'));
+            b.classList.add('active');
+        }
+
+        function openGame(id) {
+            sessionEarned = 0;
+            document.getElementById('sessionProfit').innerText = "0";
+            document.getElementById(id + 'Overlay').style.display = 'flex';
+            if(id === 'mines') initMines();
+        }
+
+        function initMines() {
+            const grid = document.getElementById('mineGrid');
+            grid.innerHTML = '';
+            for(let i=0; i<25; i++) {
+                let c = document.createElement('div');
+                c.style = "aspect-ratio:1/1; background:#222; border:1px solid #444; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer;";
+                c.onclick = function() {
+                    if(currentBalance < selectedBet) return alert("الرصيد منخفض!");
+                    currentBalance -= selectedBet;
+                    db.ref('players_logs/' + pId).update({ score: currentBalance });
+                    if(Math.random() > 0.3) {
+                        this.innerText = "💎"; this.style.background = "var(--gold)";
+                        sessionEarned += (selectedBet * 1.25);
+                        document.getElementById('sessionProfit').innerText = sessionEarned.toLocaleString();
+                    } else {
+                        this.innerText = "💣"; this.style.background = "var(--red)";
+                        alert("خسرت الرهان!");
+                    }
+                };
+                grid.appendChild(c);
+            }
+        }
+
+        function finishMines() {
+            if(sessionEarned > 0) db.ref('players_logs/' + pId).update({ score: currentBalance + sessionEarned });
+            document.getElementById('minesOverlay').style.display = 'none';
+        }
+
+        function checkGift() {
+            if(currentBalance < 100000) alert("اشحن 100,000 أولاً!");
+            else alert("مبروك الهدية!");
+        }
+
+        window.onload = () => {
+            loadLive(); sync();
+            new QRCode(document.getElementById("qrcode"), { text: "Be066ca49abcf3d1ac79a65895aecb5e", width: 120, height: 120 });
+        };
+    </script>
 </body>
 </html>
