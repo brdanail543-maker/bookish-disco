@@ -22,7 +22,7 @@
         .hero-balance { padding: 40px 20px; background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%); text-align: center; border-bottom: 1px solid var(--border); }
         .balance-label { font-size: 12px; color: var(--gold); letter-spacing: 2px; margin-bottom: 5px; }
         .balance-value { font-size: 60px; font-weight: 900; line-height: 1; text-shadow: 0 0 20px rgba(255, 204, 51, 0.4); }
-        .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); }
+        .jackpot-bar { display: inline-block; margin-top: 15px; font-family: monospace; color: var(--neon); background: rgba(0,255,68,0.1); padding: 5px 20px; border-radius: 30px; border: 1px solid rgba(0,255,68,0.2); text-shadow: 0 0 10px var(--neon); }
 
         /* 3. شريط مجهول */
         .live-news { background: #111; padding: 10px 0; border-bottom: 1px solid var(--border); }
@@ -60,7 +60,7 @@
     <div class="hero-balance">
         <div class="balance-label">الرصيد المتوفر</div>
         <div class="balance-value" id="mainScore">0</div>
-        <div class="jackpot-bar">JACKPOT: <span id="jpValue">1,450,200</span></div>
+        <div class="jackpot-bar">JACKPOT: <span id="jpValue">18,885,545</span></div>
     </div>
 
     <div class="live-news">
@@ -98,7 +98,7 @@
     </div>
 
     <script>
-        // إعدادات Firebase الخاصة بك
+        // إعدادات Firebase
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
@@ -118,12 +118,15 @@
             if(!s.exists()) db.ref('players_logs/' + pId).set({score: 0});
         });
 
-        // عداد الجاكبوت الوهمي
+        // عداد الجاكبوت الاحترافي - تم التعديل لضمان عدم ظهور NaN
+        let currentJP = 18885545; 
+        const jpElement = document.getElementById('jpValue');
+
         setInterval(() => {
-            let jp = document.getElementById('jpValue');
-            let val = parseInt(jp.innerText.replace(/,/g, ''));
-            jp.innerText = (val + Math.floor(Math.random()*12)).toLocaleString();
-        }, 1000);
+            // إضافة قيمة عشوائية بسيطة كل ثانية ونصف
+            currentJP += Math.floor(Math.random() * 50) + 10;
+            jpElement.innerText = currentJP.toLocaleString();
+        }, 1500);
 
         function claim(h) {
             alert("سيتم التحقق من الصندوق وإضافة الهدية قريباً!");
