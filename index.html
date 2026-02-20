@@ -3,34 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PLATINUM ROYAL 👑</title>
+    <title>PLATINUM ROYAL | شام كاش 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; }
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; padding-bottom: 50px; }
         
-        /* شريط الإشعارات المتحرك */
+        /* شريط الإشعارات */
         .ticker { background: #1a1a1a; color: #00ff44; padding: 10px 0; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #333; font-size: 14px; }
-        .ticker-content { display: inline-block; animation: ticker 30s linear infinite; }
+        .ticker-content { display: inline-block; animation: ticker 40s linear infinite; }
         @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
         .ticker-item { margin-left: 50px; display: inline-block; }
 
-        /* شاشة الاسم الثلاثي الملفتة */
-        #nameOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a1a, #000); }
-        #nameOverlay h1 { color: #ffcc33; font-size: 35px; text-shadow: 0 0 15px #ffcc33; margin-bottom: 30px; }
-        #nameOverlay input { background: #111; border: 3px solid #ffcc33; color: #fff; padding: 18px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; font-size: 20px; outline: none; }
-        #nameOverlay button { background: #ffcc33; color: #000; border: none; padding: 15px 60px; border-radius: 15px; font-weight: 900; margin-top: 25px; cursor: pointer; font-size: 20px; box-shadow: 0 0 20px #ffcc33; }
+        /* الهيدر والرصيد */
+        .header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; background: radial-gradient(circle, #111, #000); }
+        .balance { font-size: 60px; color: #ffcc33; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.4); margin: 5px 0; }
+        .highlight-num { color: #00ff44; font-size: 35px; font-weight: 900; display: block; margin-top: -10px; }
+        #userNameDisp { color: #888; font-size: 18px; margin-top: 10px; border: 1px solid #333; display: inline-block; padding: 2px 20px; border-radius: 20px; }
 
-        /* الواجهة الرئيسية */
-        .header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; }
-        .balance { font-size: 60px; color: #ffcc33; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.4); }
-        #userNameDisp { color: #00ff44; font-size: 18px; margin-top: 10px; }
+        /* عناوين الأقسام */
+        .section-title { padding: 20px 25px 5px; color: #ffcc33; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #333; }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 25px; }
-        .game-card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 30px; cursor: pointer; text-decoration: none; color: #fff; transition: 0.3s; }
-        .game-card:active { transform: scale(0.9); border-color: #ffcc33; }
-        .game-card i { font-size: 50px; display: block; margin-bottom: 15px; }
+        /* قسم صناديق الهدايا */
+        .gift-container { display: flex; gap: 15px; padding: 15px 25px; overflow-x: auto; scrollbar-width: none; }
+        .gift-box { min-width: 140px; background: #111; border: 1px solid #ffcc33; border-radius: 20px; padding: 20px 10px; text-align: center; position: relative; }
+        .gift-box i { font-size: 40px; display: block; margin-bottom: 10px; }
+        .gift-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #ffcc33; color: #000; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+
+        /* قسم شام كاش (تواصل مع الوكلاء) */
+        .sham-cash-card { margin: 15px 25px; background: linear-gradient(90deg, #004d1a, #000); border: 2px solid #00ff44; border-radius: 20px; padding: 20px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
+        .sham-info h3 { margin: 0; color: #00ff44; }
+        .sham-info p { margin: 5px 0 0; font-size: 13px; color: #ccc; }
+        .sham-icon { font-size: 40px; }
+
+        /* شبكة الألعاب */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px 25px; }
+        .game-card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 25px 10px; text-align: center; cursor: pointer; text-decoration: none; color: #fff; }
+        .game-card i { font-size: 45px; display: block; margin-bottom: 15px; }
+
+        /* شاشة الاسم */
+        #nameOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #nameOverlay h1 { color: #ffcc33; font-size: 35px; margin-bottom: 20px; }
+        #nameOverlay input { background: #111; border: 2px solid #ffcc33; color: #fff; padding: 18px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; font-size: 18px; }
+        #nameOverlay button { background: #ffcc33; border: none; padding: 15px 60px; border-radius: 15px; font-weight: 900; margin-top: 25px; font-size: 20px; }
 
         /* نافذة اللعبة */
         #gameWindow { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
@@ -44,28 +61,56 @@
 
     <div class="ticker">
         <div class="ticker-content">
-            <span class="ticker-item">💰 مجهول قام بإيداع 50,000 ل.س</span>
-            <span class="ticker-item">✅ مريم سحبت 150,000 ل.س</span>
+            <span class="ticker-item">💰 مجهول قام بإيداع 50,000 ل.س عبر شام كاش</span>
+            <span class="ticker-item">✅ مريم سحبت 150,000 ل.س من الوكيل</span>
             <span class="ticker-item">🎁 محمد حصل على هدية 25,000 ل.س</span>
-            <span class="ticker-item">💰 غالب قام بإيداع 10,000 ل.س</span>
             <span class="ticker-item">🔥 رؤى قامت بإيداع 250,000 ل.س</span>
-            <span class="ticker-item">🚀 المنصة تعمل الآن بكفاءة عالية</span>
         </div>
     </div>
 
     <div id="nameOverlay">
         <h1>👑 PLATINUM ROYAL</h1>
-        <p>يرجى إدخال اسمك الثلاثي حصراً</p>
+        <p>أدخل اسمك الثلاثي لتفعيل الحساب</p>
         <input type="text" id="nameInput" placeholder="الاسم - الأب - الكنية">
-        <button onclick="confirmName()">تفعيل الحساب</button>
+        <button onclick="confirmName()">دخول المنصة</button>
     </div>
 
     <div class="header">
-        <div style="font-size: 14px; color: #888; letter-spacing: 2px;">رصيدك الملكي</div>
+        <div style="font-size: 14px; color: #888;">الرصيد المتوفر</div>
         <div class="balance" id="balDisp">0</div>
+        <span class="highlight-num">400,000</span>
         <div id="userNameDisp">----</div>
     </div>
 
+    <div class="section-title">💳 شحن الرصيد</div>
+    <div class="sham-cash-card" onclick="alert('يتم الآن تحويلك لوكيل شحن شام كاش المعتمد...')">
+        <div class="sham-info">
+            <h3>شام كاش (SHAM CASH)</h3>
+            <p>تواصل مع الوكلاء للشحن والسحب الفوري</p>
+        </div>
+        <div class="sham-icon">📱</div>
+    </div>
+
+    <div class="section-title">🎁 صناديق الهدايا</div>
+    <div class="gift-container">
+        <div class="gift-box" onclick="alert('تحتاج إلى رهان إجمالي 10,000 لفتح الصندوق')">
+            <span class="gift-tag">هدية يومية</span>
+            <i>📦</i>
+            <small>صندوق برونزي</small>
+        </div>
+        <div class="gift-box" onclick="alert('مخصص لكبار الشخصيات VIP')">
+            <span class="gift-tag">VIP</span>
+            <i>🎁</i>
+            <small>صندوق ذهبي</small>
+        </div>
+        <div class="gift-box" onclick="alert('الصندوق فارغ حالياً')">
+            <span class="gift-tag">هدايا</span>
+            <i>💎</i>
+            <small>صندوق الألماس</small>
+        </div>
+    </div>
+
+    <div class="section-title">🕹️ صالة الألعاب الملكية</div>
     <div class="grid">
         <div class="game-card" onclick="openGame('./mines.html')"><i>⛏️</i><b>المنجم</b></div>
         <div class="game-card" onclick="openGame('./wheel.html')"><i>🎡</i><b>العجلة</b></div>
@@ -95,10 +140,10 @@
 
         function confirmName() {
             let val = document.getElementById('nameInput').value.trim();
-            if (val.split(/\s+/).length < 3) return alert("أدخل اسمك الثلاثي بشكل صحيح!");
+            if (val.split(/\s+/).length < 3) return alert("يرجى إدخال اسمك الثلاثي حصراً!");
             
             localStorage.setItem('fullName', val);
-            document.getElementById('epicSound').play(); // تشغيل صوت الحماس
+            document.getElementById('epicSound').play();
             db.ref('players_logs/' + pId).set({ name: val, score: 0, mode: "random" })
               .then(() => { location.reload(); });
         }
