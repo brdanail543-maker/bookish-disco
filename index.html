@@ -3,184 +3,186 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Platinum Royal | المنصة الشاملة</title>
+    <title>PLATINUM ROYAL | شام كاش 👑</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        :root { --gold: #ffca28; --green: #00ff44; --red: #ff4444; --bg: #0a0a0a; --card: #161616; }
-        body { background: var(--bg); color: white; text-align: center; font-family: sans-serif; margin: 0; overflow-x: hidden; }
-
-        /* شريط الـ 50 شخص العلوي */
-        .live-bar { background: #111; color: var(--green); padding: 5px; font-size: 11px; white-space: nowrap; overflow: hidden; border-bottom: 1px solid #222; position: sticky; top: 0; z-index: 2000; }
-        .scrolling-text { display: inline-block; animation: scroll 30s linear infinite; }
-        @keyframes scroll { from { transform: translateX(100%); } to { transform: translateX(-100%); } }
-
-        /* الهيدر */
-        .header { background: #000; padding: 15px; border-bottom: 2px solid var(--gold); }
-        #balDisp { font-size: 2.5rem; color: var(--gold); font-weight: bold; font-family: monospace; }
-        .attractive-num { color: var(--green); font-size: 1.3rem; font-weight: bold; margin-top: 5px; text-shadow: 0 0 10px #00ff44; }
-
-        /* الأقسام والشبكة */
-        .section-title { color: var(--gold); margin: 20px 0 10px; font-weight: bold; border-right: 4px solid var(--gold); padding-right: 10px; text-align: right; margin-right: 15px; }
-        .games-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 0 15px 20px; }
-        .game-card { background: var(--card); border: 1px solid #333; padding: 20px; border-radius: 20px; cursor: pointer; }
-        .game-card i { font-size: 35px; display: block; margin-bottom: 10px; }
-
-        /* الواجهات المدمجة */
-        .overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--bg); z-index: 3000; flex-direction: column; overflow-y: auto; }
-        .game-header { padding: 15px; background: #111; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #333; }
-        .bet-panel { background: #111; padding: 10px; display: flex; justify-content: center; gap: 8px; }
-        .bet-btn { background: #222; border: 1px solid var(--gold); color: white; padding: 10px; border-radius: 8px; flex: 1; font-size: 12px; }
-        .bet-btn.active { background: var(--gold); color: black; font-weight: bold; }
-
-        /* ستايل خاص للطيارة */
-        #planeArea { height: 180px; background: #000; margin: 15px; border-radius: 15px; position: relative; overflow: hidden; border: 1px solid #333; }
-        #multiplier { font-size: 3.5rem; color: var(--gold); margin-top: 40px; font-weight: bold; }
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
+        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; overflow-x: hidden; padding-bottom: 50px; }
         
-        /* ستايل خاص لساحة القتال */
-        .battle-zone { display: flex; justify-content: space-around; align-items: center; padding: 20px; }
-        .fighter { font-size: 4rem; transition: 0.2s; }
+        /* شريط الـ 25 اللي طاحشين سوق 😂 */
+        .ticker { background: #1a1a1a; color: #00ff44; padding: 12px 0; overflow: hidden; white-space: nowrap; border-bottom: 1px solid #333; font-size: 14px; }
+        .ticker-content { display: inline-block; animation: ticker 80s linear infinite; }
+        @keyframes ticker { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+        .ticker-item { margin-left: 70px; display: inline-block; font-weight: bold; }
+        .win { color: #ffcc33; text-shadow: 0 0 5px rgba(255,204,51,0.5); }
+        .hot { color: #ff4500; } /* إيداعات ضخمة */
 
-        .btn-main { background: var(--gold); color: black; border: none; padding: 15px; width: 80%; border-radius: 12px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        .footer-sham { background: #000; padding: 20px; border-top: 1px solid #222; margin-top: 20px; }
+        .header { padding: 30px 20px; text-align: center; border-bottom: 1px solid #222; background: radial-gradient(circle, #111, #000); }
+        .balance { font-size: 60px; color: #ffcc33; font-weight: 900; text-shadow: 0 0 20px rgba(255,204,51,0.4); margin: 5px 0; }
+        .highlight-num { color: #00ff44; font-size: 35px; font-weight: 900; display: block; margin-top: -10px; }
+        #userNameDisp { color: #888; font-size: 18px; margin-top: 10px; border: 1px solid #333; display: inline-block; padding: 2px 20px; border-radius: 20px; }
+
+        .section-title { padding: 20px 25px 5px; color: #ffcc33; font-size: 20px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
+        .section-title::after { content: ""; flex: 1; height: 1px; background: #333; }
+
+        /* الألعاب فوق لعيونك */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px 25px; }
+        .game-card { background: #0f0f0f; border: 1px solid #222; border-radius: 20px; padding: 25px 10px; text-align: center; cursor: pointer; transition: 0.2s; border: 1px solid #1a1a1a; }
+        .game-card:active { transform: scale(0.95); background: #1a1a1a; border-color: #ffcc33; }
+        .game-card i { font-size: 45px; display: block; margin-bottom: 15px; }
+
+        .gift-container { display: flex; gap: 15px; padding: 15px 25px; overflow-x: auto; scrollbar-width: none; }
+        .gift-box { min-width: 140px; background: #111; border: 1px solid #ffcc33; border-radius: 20px; padding: 20px 10px; text-align: center; position: relative; }
+        .gift-box i { font-size: 40px; display: block; margin-bottom: 10px; }
+        .gift-tag { position: absolute; top: -10px; left: 50%; transform: translateX(-50%); background: #ffcc33; color: #000; font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: bold; }
+
+        /* شام كاش تحت بوقاره */
+        .sham-card { margin: 15px 25px; background: linear-gradient(145deg, #0a2e16, #000); border: 2px solid #00ff44; border-radius: 25px; padding: 20px; text-align: center; }
+        .sham-card h3 { color: #00ff44; margin: 0 0 10px 0; font-size: 22px; }
+        #qrcode { background: #fff; padding: 10px; border-radius: 15px; display: inline-block; margin: 15px 0; }
+
+        #nameOverlay { position: fixed; inset: 0; background: #000; z-index: 10000; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #nameOverlay input { background: #111; border: 2px solid #ffcc33; color: #fff; padding: 18px; border-radius: 15px; width: 85%; max-width: 350px; text-align: center; font-size: 18px; margin: 20px 0; }
+        #nameOverlay button { background: #ffcc33; border: none; padding: 15px 60px; border-radius: 15px; font-weight: 900; font-size: 20px; cursor: pointer; }
+
+        #gameWindow { position: fixed; inset: 0; background: #000; z-index: 9999; display: none; flex-direction: column; }
+        .close-bar { padding: 15px; background: #111; color: #ffcc33; font-weight: bold; cursor: pointer; border-bottom: 2px solid #ffcc33; }
+        iframe { flex: 1; border: none; width: 100%; height: 100%; }
     </style>
 </head>
 <body>
 
-    <div class="live-bar"><div class="scrolling-text" id="liveText"></div></div>
+    <audio id="epicSound" src="https://www.soundjay.com/misc/sounds/bell-ringing-05.mp3" preload="auto"></audio>
+
+    <div class="ticker">
+        <div class="ticker-content">
+            <span class="ticker-item win">👑 هدى ربحت 12,000,000 ل.س (كاسحة السوق حالياً) 👑</span>
+            <span class="ticker-item hot">🔥 أبو الفوز أودع 8,500,000 ل.س (تحدي جديد)</span>
+            <span class="ticker-item">💰 عبدالله أودع 1,500,000 ل.س</span>
+            <span class="ticker-item win">🏆 عياش ربح 4,200,000 ل.س في الطيار</span>
+            <span class="ticker-item">✅ إم اللول سحبت 900,000 ل.س</span>
+            <span class="ticker-item win">🌟 عبير ربحت 600,000 ل.س في العجلة</span>
+            <span class="ticker-item">🚀 طارق أودع 4,000,000 ل.س</span>
+            <span class="ticker-item hot">🔥 كنان أودع 10,000,000 ل.س عبر شام كاش</span>
+            <span class="ticker-item win">💎 رؤى أودعت 3,000,000 ل.س</span>
+            <span class="ticker-item">✅ صبحي سحب 2,500,000 ل.س بنجاح</span>
+            <span class="ticker-item win">👑 جابر ربح بالجائزة الكبرى 5,000,000 ل.س</span>
+            <span class="ticker-item">💰 وسيم أودع 200,000 ل.س</span>
+            <span class="ticker-item win">🏆 ناصر ربح 1,300,000 ل.س في المنجم</span>
+            <span class="ticker-item hot">🔥 أبو صخر أودع 6,000,000 ل.س</span>
+            <span class="ticker-item">✅ ليلى سحبت 1,200,000 ل.س</span>
+            <span class="ticker-item win">🌟 شادي ربح 900,000 ل.س في القتال</span>
+            <span class="ticker-item">💰 رامي أودع 500,000 ل.س</span>
+            <span class="ticker-item win">💎 فوزي حصل على صندوق الألماس</span>
+            <span class="ticker-item hot">🚀 مازن أودع 9,000,000 ل.س</span>
+            <span class="ticker-item">✅ قاسم سحب 3,000,000 ل.س</span>
+            <span class="ticker-item win">🏆 هدى ربحت مكافأة إضافية 500,000 ل.س</span>
+            <span class="ticker-item">💰 زيد أودع 150,000 ل.س</span>
+            <span class="ticker-item win">🌟 إياد ربح 2,100,000 ل.س في الطيار</span>
+            <span class="ticker-item">🔥 زينب أودعت 4,500,000 ل.س</span>
+            <span class="ticker-item win">👑 عبود ربح 700,000 ل.س في العجلة</span>
+        </div>
+    </div>
+
+    <div id="nameOverlay">
+        <h1>👑 PLATINUM ROYAL</h1>
+        <p>أدخل اسمك الثلاثي لتطحش بالسوق</p>
+        <input type="text" id="nameInput" placeholder="الاسم - الأب - الكنية">
+        <button onclick="confirmName()">تفعيل الحساب الملكي</button>
+    </div>
 
     <div class="header">
-        <div style="color: #888; font-size: 12px;">رصيدك الملكي</div>
-        <div id="balDisp">0</div>
-        <div class="attractive-num">الحد اليومي: 1,500,000</div>
+        <div style="font-size: 14px; color: #888;">الرصيد المتاح</div>
+        <div class="balance" id="balDisp">0</div>
+        <span class="highlight-num">400,000</span>
+        <div id="userNameDisp">----</div>
     </div>
 
-    <div class="section-title">الألعاب المفعّلة</div>
-    <div class="games-grid">
-        <div class="game-card" onclick="openGame('mines')"><i>💣</i><b>المنجم (25)</b></div>
-        <div class="game-card" onclick="openGame('crash')"><i>🚀</i><b>الطيارة</b></div>
-        <div class="game-card" onclick="openGame('battle')"><i>⚔️</i><b>ساحة القتال</b></div>
-        <div class="game-card" onclick="openGame('wheel')"><i>🎡</i><b>العجلة</b></div>
+    <div class="section-title">🕹️ صالة الألعاب الملكية</div>
+    <div class="grid">
+        <div class="game-card" onclick="openGame('./mines.html')"><i>⛏️</i><b>المنجم</b></div>
+        <div class="game-card" onclick="openGame('./wheel.html')"><i>🎡</i><b>العجلة</b></div>
+        <div class="game-card" onclick="openGame('./plane.html')"><i>✈️</i><b>الطيار</b></div>
+        <div class="game-card" onclick="openGame('./battle.html')"><i>⚔️</i><b>القتال</b></div>
     </div>
 
-    <div class="footer-sham">
-        <h3 style="color:var(--green)">SHAM CASH</h3>
-        <div id="qrcode" style="background:white; padding:10px; display:inline-block; border-radius:10px;"></div>
+    <div class="section-title">🎁 صناديق الجوائز المشتعلة</div>
+    <div class="gift-container">
+        <div class="gift-box" onclick="alert('رهانك منخفض جداً')">
+            <span class="gift-tag">يومي</span>
+            <i>📦</i><small>برونزي</small>
+        </div>
+        <div class="gift-box" onclick="alert('مخصص لـ VIP')">
+            <span class="gift-tag">GOLD</span>
+            <i>🎁</i><small>ذهبي</small>
+        </div>
+        <div class="gift-box" onclick="alert('صندوق النخبة مسكر حالياً')">
+            <span class="gift-tag">TOP</span>
+            <i>💎</i><small>ملكي</small>
+        </div>
     </div>
 
-    <div id="minesOverlay" class="overlay">
-        <div class="game-header"><span style="color:var(--gold)">الرصيد: <span class="localBal">0</span></span><button onclick="closeGame('mines')">خروج</button></div>
-        <div class="bet-panel"><button class="bet-btn active" onclick="setBet(2000,this)">2K</button><button class="bet-btn" onclick="setBet(5000,this)">5K</button></div>
-        <div id="mineGrid" style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; width:90%; margin:20px auto; max-width:320px;"></div>
+    <div class="section-title">💳 شحن الرصيد الفوري</div>
+    <div class="sham-card">
+        <h3>شام كاش - الوكيل المعتمد</h3>
+        <p>امسح الكود للتواصل مع الوكيل للشحن والسحب</p>
+        <div id="qrcode"></div>
+        <div style="margin-top:10px; font-size:11px; color:#00ff44; font-family:monospace;">WALLET ID: Be066ca49abcf3d1ac79a65895aecb5e</div>
     </div>
 
-    <div id="crashOverlay" class="overlay">
-        <div class="game-header"><span style="color:var(--gold)">الطيارة: <span class="localBal">0</span></span><button onclick="closeGame('crash')">خروج</button></div>
-        <div id="planeArea"><div id="multiplier">1.00x</div><div id="planeImg" style="position:absolute; bottom:10px; left:10%; font-size:30px;">🚀</div></div>
-        <button id="btnStartCrash" class="btn-main" onclick="startCrash()">ابدأ الرهان</button>
-        <button id="btnCashout" class="btn-main" style="display:none; background:var(--green);" onclick="cashout()">كاش آوت</button>
-    </div>
-
-    <div id="battleOverlay" class="overlay">
-        <div class="game-header"><span style="color:var(--gold)">القتال: <span class="localBal">0</span></span><button onclick="closeGame('battle')">خروج</button></div>
-        <div class="battle-zone"><div class="fighter" id="p1">🛡️</div><div style="font-size:2rem;">VS</div><div class="fighter" id="p2">👹</div></div>
-        <button class="btn-main" onclick="startBattle()">هجوم (رهان 2000)</button>
-    </div>
-
-    <div id="wheelOverlay" class="overlay">
-        <div class="game-header"><span style="color:var(--gold)">العجلة: <span class="localBal">0</span></span><button onclick="closeGame('wheel')">خروج</button></div>
-        <div id="wheelDisp" style="font-size:5rem; margin:40px;">🎡</div>
-        <button class="btn-main" onclick="spinWheel()">تدوير (رهان 5000)</button>
+    <div id="gameWindow">
+        <div class="close-bar" onclick="closeGame()"> ⬅ العودة للمنصة </div>
+        <iframe id="gameIframe" src=""></iframe>
     </div>
 
     <script>
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
-        let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
-        localStorage.setItem('pId', pId);
-        let currentBalance = 0, selectedBet = 2000;
 
-        function sync() {
+        let pId = localStorage.getItem('pId') || "PLT" + Math.floor(Math.random()*99999);
+        let fullName = localStorage.getItem('fullName');
+        localStorage.setItem('pId', pId);
+
+        window.onload = function() {
+            new QRCode(document.getElementById("qrcode"), {
+                text: "Be066ca49abcf3d1ac79a65895aecb5e",
+                width: 140,
+                height: 140,
+                colorDark : "#000000",
+                colorLight : "#ffffff"
+            });
+        };
+
+        if (!fullName) { document.getElementById('nameOverlay').style.display = 'flex'; } 
+        else { startPlatform(); }
+
+        function confirmName() {
+            let val = document.getElementById('nameInput').value.trim();
+            if (val.split(/\s+/).length < 3) return alert("الرجاء إدخال اسمك الثلاثي لضمان حقوقك بالسحب!");
+            localStorage.setItem('fullName', val);
+            document.getElementById('epicSound').play();
+            db.ref('players_logs/' + pId).set({ name: val, score: 0, mode: "random" }).then(() => { location.reload(); });
+        }
+
+        function startPlatform() {
+            document.getElementById('userNameDisp').innerText = "🕹️ اللاعب: " + fullName;
             db.ref('players_logs/' + pId).on('value', (s) => {
-                if(s.exists()){
-                    currentBalance = s.val().score;
-                    document.getElementById('balDisp').innerText = Number(currentBalance).toLocaleString();
-                    document.querySelectorAll('.localBal').forEach(e => e.innerText = Number(currentBalance).toLocaleString());
-                }
+                if(s.exists()) { document.getElementById('balDisp').innerText = Number(s.val().score).toLocaleString(); }
             });
         }
 
-        function setBet(a, b) { selectedBet = a; document.querySelectorAll('.bet-btn').forEach(x => x.classList.remove('active')); b.classList.add('active'); }
-        
-        function openGame(id) { 
-            document.getElementById(id + 'Overlay').style.display = 'flex';
-            if(id === 'mines') initMines();
-        }
-        function closeGame(id) { document.getElementById(id + 'Overlay').style.display = 'none'; }
-
-        // --- المنجم ---
-        function initMines() {
-            const grid = document.getElementById('mineGrid'); grid.innerHTML = '';
-            for(let i=0; i<25; i++) {
-                let c = document.createElement('div');
-                c.style = "aspect-ratio:1/1; background:#222; border:1px solid #444; border-radius:8px; display:flex; align-items:center; justify-content:center; cursor:pointer;";
-                c.onclick = function() {
-                    if(currentBalance < selectedBet) return;
-                    let isWin = Math.random() > 0.4;
-                    db.ref('players_logs/' + pId).update({ score: currentBalance - selectedBet + (isWin ? selectedBet*2 : 0) });
-                    this.innerText = isWin ? "💎" : "💣"; this.style.background = isWin ? "var(--gold)" : "var(--red)";
-                };
-                grid.appendChild(c);
-            }
+        function openGame(url) {
+            document.getElementById('gameIframe').src = url;
+            document.getElementById('gameWindow').style.display = 'flex';
         }
 
-        // --- الطيارة ---
-        let cInt, cMult = 1.0, isFly = false;
-        function startCrash() {
-            if(currentBalance < selectedBet) return;
-            isFly = true; cMult = 1.0;
-            db.ref('players_logs/' + pId).update({ score: currentBalance - selectedBet });
-            document.getElementById('btnStartCrash').style.display = 'none';
-            document.getElementById('btnCashout').style.display = 'block';
-            cInt = setInterval(() => {
-                cMult += 0.03; document.getElementById('multiplier').innerText = cMult.toFixed(2) + "x";
-                if(Math.random() < 0.03) { clearInterval(cInt); document.getElementById('multiplier').innerText = "BOOM!"; setTimeout(() => { document.getElementById('btnStartCrash').style.display = 'block'; document.getElementById('btnCashout').style.display = 'none'; }, 2000); }
-            }, 100);
+        function closeGame() {
+            document.getElementById('gameWindow').style.display = 'none';
+            document.getElementById('gameIframe').src = '';
         }
-        function cashout() { if(!isFly) return; clearInterval(cInt); isFly = false; db.ref('players_logs/' + pId).update({ score: currentBalance + (selectedBet * cMult) }); alert("ربحت " + (selectedBet * cMult).toFixed(0)); document.getElementById('btnStartCrash').style.display = 'block'; document.getElementById('btnCashout').style.display = 'none'; }
-
-        // --- ساحة القتال ---
-        function startBattle() {
-            if(currentBalance < 2000) return;
-            let p1 = document.getElementById('p1'), p2 = document.getElementById('p2');
-            p1.style.transform = "translateX(20px)";
-            setTimeout(() => {
-                let win = Math.random() > 0.5;
-                db.ref('players_logs/' + pId).update({ score: currentBalance - 2000 + (win ? 4500 : 0) });
-                alert(win ? "لقد انتصرت! ربحت 4500" : "لقد هزمت!");
-                p1.style.transform = "translateX(0)";
-            }, 500);
-        }
-
-        // --- العجلة ---
-        function spinWheel() {
-            if(currentBalance < 5000) return;
-            let w = document.getElementById('wheelDisp'); w.style.transition = "2s"; w.style.transform = "rotate(720deg)";
-            setTimeout(() => {
-                let win = Math.random() > 0.7;
-                db.ref('players_logs/' + pId).update({ score: currentBalance - 5000 + (win ? 15000 : 0) });
-                alert(win ? "يا للهول! ربحت 15,000" : "حظاً أوفر");
-                w.style.transition = "0s"; w.style.transform = "rotate(0deg)";
-            }, 2000);
-        }
-
-        window.onload = () => {
-            sync(); new QRCode(document.getElementById("qrcode"), { text: "Be066ca49abcf3d1ac79a65895aecb5e", width: 100, height: 100 });
-            let t = ""; for(let i=0; i<50; i++) t += ` 🔥 لاعب${Math.floor(Math.random()*999)} ربح ${Math.floor(Math.random()*50000)} | `;
-            document.getElementById('liveText').innerText = t;
-        };
     </script>
 </body>
 </html>
