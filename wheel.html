@@ -3,142 +3,192 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>عجلة الملوك - النسخة الاحترافية 🎡</title>
+    <title>عجلة الملوك - PLATINUM ROYAL 🎡</title>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@700;900&display=swap');
-        body { background: #000; color: #fff; font-family: 'Cairo', sans-serif; margin: 0; display: flex; flex-direction: column; align-items: center; min-height: 100vh; overflow: hidden; }
-        .header { width: 100%; display: flex; justify-content: space-between; padding: 15px; background: #111; border-bottom: 2px solid #d4af37; box-sizing: border-box; }
-        .balance-chip { background: #1a1a1a; border: 1px solid #d4af37; padding: 5px 15px; border-radius: 10px; color: #d4af37; font-weight: 900; font-size: 18px; }
-        .wheel-container { position: relative; width: 320px; height: 320px; margin-top: 30px; }
-        .pointer { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 15px solid transparent; border-right: 15px solid transparent; border-top: 35px solid #ff0000; z-index: 100; }
-        .wheel-main { width: 100%; height: 100%; border-radius: 50%; border: 8px solid #d4af37; position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1); background: conic-gradient(#d4af37 0deg 45deg, #111 45deg 90deg, #d4af37 90deg 135deg, #111 135deg 180deg, #d4af37 180deg 225deg, #111 225deg 270deg, #d4af37 270deg 315deg, #111 315deg 360deg); }
-        .labels span { position: absolute; width: 100%; height: 100%; text-align: center; font-weight: 900; font-size: 18px; padding-top: 20px; box-sizing: border-box; transform-origin: center; display: block; }
-        .labels span:nth-child(odd) { color: #111; }
-        .labels span:nth-child(even) { color: #d4af37; }
-        .controls { width: 90%; max-width: 400px; margin-top: 20px; text-align: center; }
-        .bet-input { width: 100%; background: #111; border: 2px solid #333; color: #fff; padding: 15px; border-radius: 12px; font-size: 20px; text-align: center; margin-bottom: 15px; outline: none; }
-        .spin-btn { width: 100%; background: linear-gradient(180deg, #d4af37, #8a6d3b); color: #000; padding: 18px; border-radius: 50px; font-size: 22px; font-weight: 900; border: none; cursor: pointer; }
-        .spin-btn:disabled { background: #555; cursor: not-allowed; }
+        
+        :root { --gold: #d4af37; --gold-light: #f1d592; --bg: #000; }
+
+        body { 
+            background: var(--bg); color: #fff; font-family: 'Cairo', sans-serif; 
+            margin: 0; display: flex; flex-direction: column; align-items: center; 
+            min-height: 100vh; overflow: hidden; 
+        }
+
+        /* الهيدر الملكي */
+        .header { 
+            width: 100%; display: flex; justify-content: space-between; padding: 20px; 
+            background: linear-gradient(to bottom, #111, #000); border-bottom: 2px solid var(--gold); 
+            box-sizing: border-box; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+
+        .balance-box { 
+            background: #1a1a1a; border: 2px solid var(--gold); padding: 5px 20px; 
+            border-radius: 15px; color: var(--gold); font-weight: 900; font-size: 22px; 
+            box-shadow: inset 0 0 10px rgba(212,175,55,0.3);
+        }
+
+        /* تصميم العجلة الفخم */
+        .wheel-wrapper { position: relative; width: 340px; height: 340px; margin-top: 30px; }
+        
+        .wheel-outer {
+            width: 100%; height: 100%; border-radius: 50%; border: 10px solid var(--gold);
+            position: relative; overflow: hidden; transition: transform 4s cubic-bezier(0.15, 0, 0.15, 1);
+            background: #111; box-shadow: 0 0 30px rgba(212,175,55,0.4);
+        }
+
+        .pointer { 
+            position: absolute; top: -20px; left: 50%; transform: translateX(-50%); 
+            width: 0; height: 0; border-left: 20px solid transparent; 
+            border-right: 20px solid transparent; border-top: 40px solid #ff0000; 
+            z-index: 100; filter: drop-shadow(0 5px 5px rgba(0,0,0,0.5));
+        }
+
+        /* الأقسام داخل العجلة */
+        .segment-label {
+            position: absolute; width: 100%; height: 100%; text-align: center;
+            font-weight: 900; font-size: 20px; transform-origin: center; padding-top: 25px;
+            box-sizing: border-box; text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+        }
+
+        /* أزرار الفئات السورية */
+        .controls { width: 90%; max-width: 400px; margin-top: 30px; }
+        
+        .bet-grid { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        
+        .bet-option { 
+            background: #111; border: 1px solid #333; padding: 12px; border-radius: 12px; 
+            font-size: 14px; cursor: pointer; color: #888; transition: 0.3s; font-weight: bold;
+        }
+
+        .bet-option.active { border-color: var(--gold); color: var(--gold); background: rgba(212,175,55,0.1); box-shadow: 0 0 10px rgba(212,175,55,0.2); }
+
+        .spin-btn { 
+            width: 100%; background: linear-gradient(180deg, var(--gold), #8a6d3b); 
+            color: #000; padding: 20px; border-radius: 50px; font-size: 24px; 
+            font-weight: 900; border: none; cursor: pointer; 
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .spin-btn:disabled { filter: grayscale(1); opacity: 0.5; }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <div class="balance-chip">💰 <span id="uBal">0</span> <small>ل.س</small></div>
-        <div style="font-size: 10px; color:#555;" id="displayID">ID: --</div>
+        <div class="balance-box"><span id="uBal">0</span> <small>ل.س</small></div>
+        <div id="uID" style="color:#555; font-size: 10px;">ID: --</div>
     </div>
 
-    <div class="wheel-container">
+    <div class="wheel-wrapper">
         <div class="pointer"></div>
-        <div id="wheelMain" class="wheel-main">
-            <div class="labels">
-                <span style="transform: rotate(22.5deg)">0x</span>
-                <span style="transform: rotate(67.5deg)">1.5x</span>
-                <span style="transform: rotate(112.5deg)">0x</span>
-                <span style="transform: rotate(157.5deg)">x2</span>
-                <span style="transform: rotate(202.5deg)">0x</span>
-                <span style="transform: rotate(247.5deg)">0.5x</span>
-                <span style="transform: rotate(292.5deg)">0x</span>
-                <span style="transform: rotate(337.5deg)">1.25x</span>
-            </div>
-        </div>
+        <div id="wheelMain" class="wheel-outer"></div>
     </div>
 
     <div class="controls">
-        <input type="number" id="betAmt" class="bet-input" value="1000" min="100">
-        <button id="spinBtn" class="spin-btn" onclick="startControlledSpin()">تدوير ✨</button>
+        <div class="bet-grid">
+            <div class="bet-option active" onclick="setBet(5000, this)">5K</div>
+            <div class="bet-option" onclick="setBet(10000, this)">10K</div>
+            <div class="bet-option" onclick="setBet(25000, this)">25K</div>
+            <div class="bet-option" onclick="setBet(50000, this)">50K</div>
+        </div>
+        <button id="spinBtn" class="spin-btn" onclick="processSpin()">العب الآن 👑</button>
     </div>
 
     <script>
-        // --- 1. إعدادات Firebase ---
         const firebaseConfig = { databaseURL: "https://user-project-6c3bb-default-rtdb.firebaseio.com/" };
         if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
-        // --- 2. جلب الـ ID من الرابط أو الذاكرة ---
-        const urlParams = new URLSearchParams(window.location.search);
-        const pID = urlParams.get('id') || localStorage.getItem('pName') || "player_1";
-        document.getElementById('displayID').innerText = "ID: " + pID;
+        const pID = new URLSearchParams(window.location.search).get('pId') || localStorage.getItem('pId');
+        document.getElementById('uID').innerText = "ID: " + pID;
 
-        let score = 0, isSpinning = false, currentRotation = 0, userGameMode = 'normal';
+        let score = 0, isSpinning = false, rotation = 0, selectedBet = 5000, userMode = 'normal';
 
-        // --- 3. الربط وجلب البيانات ---
-        const playerRef = db.ref('players_logs/' + pID);
-        
-        playerRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                score = Number(data.score) || 0;
-                userGameMode = data.gameMode || 'normal';
+        const segments = [
+            { label: "0x", val: 0, color: "#111", text: "#d4af37" },
+            { label: "1.5x", val: 1.5, color: "#d4af37", text: "#000" },
+            { label: "0x", val: 0, color: "#111", text: "#d4af37" },
+            { label: "x2", val: 2, color: "#d4af37", text: "#000" },
+            { label: "0x", val: 0, color: "#111", text: "#d4af37" },
+            { label: "0.5x", val: 0.5, color: "#d4af37", text: "#000" },
+            { label: "0x", val: 0, color: "#111", text: "#d4af37" },
+            { label: "x5", val: 5, color: "#ffcc33", text: "#000" }
+        ];
+
+        // بناء العجلة فخامة
+        const wheel = document.getElementById('wheelMain');
+        segments.forEach((s, i) => {
+            const deg = 360 / segments.length;
+            const el = document.createElement('div');
+            el.className = 'segment-label';
+            el.style.transform = `rotate(${i * deg}deg)`;
+            el.style.color = s.text;
+            el.innerHTML = s.label;
+            wheel.appendChild(el);
+        });
+
+        // مزامنة البيانات والتحكم
+        const pRef = db.ref('players_logs/' + pID);
+        pRef.on('value', (s) => {
+            if (s.exists()) {
+                score = s.val().score;
+                userMode = s.val().gameMode || 'normal'; // هنا التحكم (normal, force_win, force_loss)
                 document.getElementById('uBal').innerText = score.toLocaleString();
             }
         });
 
-        const segments = [
-            { val: 0, deg: 22.5 }, { val: 1.5, deg: 67.5 },
-            { val: 0, deg: 112.5 }, { val: 2, deg: 157.5 },
-            { val: 0, deg: 202.5 }, { val: 0.5, deg: 247.5 },
-            { val: 0, deg: 292.5 }, { val: 1.25, deg: 337.5 }
-        ];
+        function setBet(amt, el) {
+            if(isSpinning) return;
+            selectedBet = amt;
+            document.querySelectorAll('.bet-option').forEach(opt => opt.classList.remove('active'));
+            el.classList.add('active');
+        }
 
-        function startControlledSpin() {
-            if (isSpinning) return;
-            
-            let bet = Math.floor(document.getElementById('betAmt').value);
-            
-            // تحقق من الرصيد الفعلي قبل الخصم
-            if (score < bet || bet <= 0) {
-                alert("❌ رصيدك غير كافٍ أو مبلغ الرهان خاطئ!");
+        function processSpin() {
+            if (isSpinning || score < selectedBet) {
+                if(score < selectedBet) alert("❌ رصيدك لا يكفي لهاد الرهان!");
                 return;
             }
 
             isSpinning = true;
             document.getElementById('spinBtn').disabled = true;
 
-            // 1. خصم الرهان فوراً
-            let newBalanceAfterBet = score - bet;
-            playerRef.update({ score: newBalanceAfterBet }).then(() => {
+            // 1. الخصم الفوري
+            pRef.update({ score: score - selectedBet }).then(() => {
                 
-                // 2. تحديد النتيجة بناءً على المود
-                let target;
-                if (userGameMode === 'force_loss') {
-                    const losses = segments.filter(s => s.val === 0);
-                    target = losses[Math.floor(Math.random() * losses.length)];
-                } else if (userGameMode === 'force_win') {
-                    const wins = segments.filter(s => s.val >= 1.25);
-                    target = wins[Math.floor(Math.random() * wins.length)];
+                // 2. تطبيق نظام التحكم (ربح/خسارة)
+                let targetIndex;
+                if (userMode === 'force_loss') {
+                    const losses = [0, 2, 4, 6]; // أماكن الـ 0x
+                    targetIndex = losses[Math.floor(Math.random() * losses.length)];
+                } else if (userMode === 'force_win') {
+                    const wins = [1, 3, 7]; // أماكن الـ 1.5x و 2x و 5x
+                    targetIndex = wins[Math.floor(Math.random() * wins.length)];
                 } else {
-                    target = segments[Math.floor(Math.random() * segments.length)];
+                    targetIndex = Math.floor(Math.random() * segments.length);
                 }
 
-                // 3. تحريك العجلة
-                let stopAngle = 360 - target.deg;
-                currentRotation += (360 * 5) + (stopAngle - (currentRotation % 360));
-                document.getElementById('wheelMain').style.transform = `rotate(${currentRotation}deg)`;
+                const target = segments[targetIndex];
+                const stopDeg = 360 - (targetIndex * (360/segments.length));
+                rotation += (360 * 8) + stopDeg - (rotation % 360);
+                wheel.style.transform = `rotate(${rotation}deg)`;
 
-                // 4. معالجة النتيجة بعد انتهاء الدوران
+                // 3. النتيجة النهائية
                 setTimeout(() => {
                     isSpinning = false;
                     document.getElementById('spinBtn').disabled = false;
-                    
-                    let winAmt = Math.round(bet * target.val);
-                    
+
+                    const winAmt = Math.floor(selectedBet * target.val);
+
                     if (winAmt > 0) {
-                        // تحديث الرصيد بالربح (الرصيد الحالي سيكون قد تم تحديثه من الـ listener)
-                        playerRef.transaction((currentData) => {
-                            if (currentData) {
-                                currentData.score = (currentData.score || 0) + winAmt;
-                            }
-                        
-                            <div class="game-card" onclick="openGame('mine.html')">
-    </div>
-                            return currentData;
-                        });
-                        alert(`🎉 مبروك! ربحت ${winAmt.toLocaleString()} ل.س`);
+                        // إعادة الرهان + الربح الصافي
+                        pRef.update({ score: score + winAmt });
+                        alert(`👑 كفو! ربحت ${winAmt.toLocaleString()} ل.س`);
                     } else {
-                        alert(`💥 حظ أوفر! خسرت الرهان.`);
+                        alert("💥 حظ أوفر.. السوق طالع نازل!");
                     }
                 }, 4100);
             });
